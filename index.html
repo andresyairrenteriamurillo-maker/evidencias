@@ -125,26 +125,77 @@
   .docente-row .info { flex:1; min-width:0; } .docente-row .info b { display:block; }
   .mini-barra { height:8px; background:var(--borde); border-radius:6px; overflow:hidden; margin-top:6px; } .mini-barra > div { height:100%; background:var(--ok); }
   input[readonly] { opacity:.7; }
+  /* ===== Encabezado llamativo ===== */
+  header { position:sticky; top:0; overflow:hidden; padding:18px 16px 16px; transition: padding .25s; }
+  .orbes span { position:absolute; border-radius:50%; filter: blur(40px); opacity:.45; pointer-events:none; animation: flota 14s ease-in-out infinite alternate; }
+  .orbes span:nth-child(1) { width:220px; height:220px; background:#22D3EE; left:-60px; top:-90px; }
+  .orbes span:nth-child(2) { width:260px; height:260px; background:#A855F7; right:-80px; top:-120px; animation-delay:-5s; }
+  .orbes span:nth-child(3) { width:180px; height:180px; background:#F472B6; left:45%; bottom:-120px; animation-delay:-9s; }
+  @keyframes flota { to { transform: translate(30px, 20px) scale(1.15); } }
+  .top { position:relative; flex-wrap:wrap; }
+  .logo { width:48px; height:48px; border-radius:14px; font-size:24px; background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.08)); border:1px solid rgba(255,255,255,.3); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  header h1 { font-size:21px; }
+  .usuario { display:none; align-items:center; gap:8px; padding:6px 6px 6px 6px; border-radius:40px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); backdrop-filter: blur(6px); max-width:100%; }
+  .avatar { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:14px; background:linear-gradient(135deg,#FBBF24,#F472B6); color:#1a1033; flex:none; }
+  .u-info { display:flex; flex-direction:column; line-height:1.15; min-width:0; } .u-info b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px; } .u-info span { font-size:11px; opacity:.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px; }
+  .rol { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; padding:3px 8px; border-radius:20px; background:rgba(255,255,255,.2); }
+  .rol.rect { background:linear-gradient(135deg,#FB7185,#E11D48); }
+  .usuario button { width:30px; height:30px; border-radius:50%; padding:0; font-size:15px; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3); cursor:pointer; }
+  nav#menu { position:relative; max-width:860px; margin:16px auto 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(118px, 1fr)); gap:10px; overflow:visible; }
+  nav#menu button { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; padding:12px 12px 11px; border-radius:16px; color:#fff; font-weight:700; overflow:hidden; isolation:isolate;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22); backdrop-filter: blur(8px); box-shadow: 0 4px 14px rgba(0,0,0,.12); transition: transform .18s ease, box-shadow .2s, background .2s; }
+  nav#menu button::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(135deg,var(--c1),var(--c2)); opacity:0; transition: opacity .25s; }
+  nav#menu button:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.22); }
+  nav#menu button:hover::before { opacity:.35; }
+  nav#menu button.on { color:#fff; background:transparent; border-color:rgba(255,255,255,.55); transform: translateY(-2px); box-shadow: 0 10px 28px color-mix(in srgb, var(--c2) 55%, transparent); }
+  nav#menu button.on::before { opacity:1; }
+  nav#menu button.on::after { content:""; position:absolute; left:14px; right:14px; bottom:5px; height:3px; border-radius:3px; background:rgba(255,255,255,.85); }
+  .ti { font-size:24px; line-height:1; margin-bottom:4px; transition: transform .25s; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+  nav#menu button:hover .ti, nav#menu button.on .ti { transform: scale(1.15) rotate(-6deg); }
+  .tl { font-size:14px; } .ts { font-size:11px; font-weight:600; opacity:.85; }
+  .onda { position:absolute; border-radius:50%; background:rgba(255,255,255,.55); transform:scale(0); animation: onda .6s ease-out; pointer-events:none; }
+  @keyframes onda { to { transform:scale(4); opacity:0; } }
+  header.compacto { padding:10px 16px 10px; }
+  header.compacto .sub, header.compacto .orbes { display:none; }
+  header.compacto .logo { width:36px; height:36px; font-size:18px; }
+  header.compacto nav#menu { margin-top:10px; grid-template-columns:repeat(auto-fit, minmax(90px,1fr)); gap:6px; }
+  header.compacto nav#menu button { flex-direction:row; align-items:center; gap:6px; padding:8px 10px; border-radius:12px; }
+  header.compacto .ti { font-size:17px; margin:0; } header.compacto .ts { display:none; } header.compacto .tl { font-size:12.5px; }
+  header.compacto .usuario .u-info, header.compacto .rol { display:none; }
+  /* ===== Tarjetas de resumen ===== */
+  .stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px; }
+  .stat { position:relative; overflow:hidden; border-radius:var(--radio); padding:14px; background:var(--card); border:1px solid var(--borde); box-shadow:var(--sombra); cursor:pointer; transition: transform .18s, box-shadow .2s; }
+  .stat:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,.14); }
+  .stat::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--c1),var(--c2)); }
+  .stat .si { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; font-size:19px; background:linear-gradient(135deg, color-mix(in srgb,var(--c1) 25%, transparent), color-mix(in srgb,var(--c2) 25%, transparent)); margin-bottom:8px; }
+  .stat .sv { font-size:24px; font-weight:800; line-height:1.1; }
+  .stat .sl { font-size:12px; color:var(--suave); margin-top:2px; }
+  header.compacto nav#menu button.on::after { display:none; }
+  @media (max-width:640px) { header h1 { font-size:18px; } header.compacto nav#menu { grid-template-columns:repeat(auto-fit, minmax(44px,1fr)); } header.compacto nav#menu button { justify-content:center; padding:8px 4px; } header.compacto .tl { display:none; } header.compacto .ti { font-size:20px; } }
+  @media (max-width:640px) { .stats { grid-template-columns:repeat(2, 1fr); } nav#menu { grid-template-columns:repeat(3, 1fr); } .usuario { order:5; width:100%; } .u-info b, .u-info span { max-width:none; } .usuario .rol { margin-left:auto; } }
   @media (max-width:520px) { .row { flex-direction:column; gap:0; } nav button { padding:10px 10px 12px; font-size:13px; } }
 </style>
 </head>
 <body>
-<header>
+<header id="cabecera">
+  <div class="orbes"><span></span><span></span><span></span></div>
   <div class="top">
     <div class="logo">📁</div>
-    <div class="titulos"><h1>Mis Evidencias Docentes</h1><div class="sub" id="subtitulo"></div><div class="usuario" id="usuario"><span id="usuario_txt"></span><button id="salir">Salir</button></div></div>
+    <div class="titulos"><h1>Mis Evidencias Docentes</h1><div class="sub" id="subtitulo"></div></div>
+    <div class="usuario" id="usuario"><div class="avatar" id="avatar">?</div><div class="u-info"><b id="usuario_nom"></b><span id="usuario_txt"></span></div><span class="rol" id="usuario_rol">Docente</span><button id="salir" title="Cerrar sesión">⏻</button></div>
     <button id="tema" title="Cambiar modo día / noche">🌙</button>
   </div>
-  <nav>
-    <button data-tab="registrar" class="on">➕ Registrar</button>
-    <button data-tab="estado">📊 Mis evidencias</button>
-    <button data-tab="generar">📄 Generar Word</button>
-    <button data-tab="planear">🗓️ Planear año</button>
-    <button data-tab="rectoria" id="tab_rectoria" style="display:none">🏫 Rectoría</button>
-    <button data-tab="config">⚙️ Configuración</button>
+  <nav id="menu">
+    <button data-tab="registrar" class="on" style="--c1:#22D3EE;--c2:#3B82F6"><span class="ti">📸</span><span class="tl">Registrar</span><span class="ts" id="b_registrar">Nueva evidencia</span></button>
+    <button data-tab="estado" style="--c1:#34D399;--c2:#059669"><span class="ti">📊</span><span class="tl">Mis evidencias</span><span class="ts" id="b_estado">0%</span></button>
+    <button data-tab="generar" style="--c1:#FBBF24;--c2:#F97316"><span class="ti">📦</span><span class="tl">Generar Word</span><span class="ts" id="b_generar">Carpeta .zip</span></button>
+    <button data-tab="planear" style="--c1:#F472B6;--c2:#A855F7"><span class="ti">🗓️</span><span class="tl">Planear año</span><span class="ts" id="b_planear">Anexos 5 y 2</span></button>
+    <button data-tab="rectoria" id="tab_rectoria" style="display:none;--c1:#FB7185;--c2:#E11D48"><span class="ti">🏫</span><span class="tl">Rectoría</span><span class="ts" id="b_rectoria">Docentes</span></button>
+    <button data-tab="config" style="--c1:#94A3B8;--c2:#6366F1"><span class="ti">⚙️</span><span class="tl">Configuración</span><span class="ts">Datos e IA</span></button>
   </nav>
 </header>
 <main>
+<div class="stats" id="stats"></div>
 <div id="avisos"></div>
 
 <!-- ============ REGISTRAR ============ -->
@@ -578,7 +629,13 @@ const hoy = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTim
 const compById = id => CFG.comps.find(c => c.id === id);
 
 // =================================================================== NAVEGACIÓN
-document.querySelectorAll("nav button").forEach(b => b.onclick = () => irA(b.dataset.tab));
+document.querySelectorAll("nav button").forEach(b => b.onclick = ev => {
+  const r = b.getBoundingClientRect(), o = document.createElement("span"), t = Math.max(r.width, r.height);
+  o.className = "onda"; o.style.width = o.style.height = t + "px"; o.style.left = (ev.clientX - r.left - t / 2) + "px"; o.style.top = (ev.clientY - r.top - t / 2) + "px";
+  b.appendChild(o); setTimeout(() => o.remove(), 650); irA(b.dataset.tab);
+});
+let _compacto = false;
+window.addEventListener("scroll", () => { const y = window.scrollY, c = _compacto ? y > 15 : y > 90; if (c !== _compacto) { _compacto = c; $("cabecera").classList.toggle("compacto", c); } }, { passive: true });
 function irA(tab) {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
   document.querySelectorAll("section").forEach(x => x.classList.toggle("on", x.id === tab));
@@ -587,7 +644,7 @@ function irA(tab) {
   if (tab === "config") { pintarConfig(); pintarIA(); }
   if (tab === "planear") pintarConfig();
   if (tab === "rectoria") Rectoria.cargar();
-  $("avisos").style.display = (tab === "registrar" || tab === "estado") ? "block" : "none";
+  $("avisos").style.display = $("stats").style.display = (tab === "registrar" || tab === "estado") ? "" : "none";
   window.scrollTo(0, 0);
 }
 
@@ -1344,7 +1401,9 @@ const CloudStore = {
     const g = await this.db.doc("config/global").get(); this.global = g.exists ? g.data() : {};
     const autorizados = (this.global.docentes || []).map(x => x.toLowerCase());
     if (!this.rectora && !autorizados.includes(this.email)) { mostrarLogin(`Tu correo <b>${esc(this.email)}</b> no está autorizado todavía. Pide a la rectora que lo agregue en la lista de docentes.`, true); throw new Error("no autorizado"); }
-    $("usuario").style.display = "flex"; $("usuario_txt").textContent = (this.rectora ? "Rectoría · " : "") + this.email;
+    $("usuario").style.display = "flex"; $("usuario_txt").textContent = this.email; $("usuario_nom").textContent = this.nombre || this.email.split("@")[0];
+    $("avatar").textContent = (this.nombre || this.email).split(/[\s.@]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join("");
+    $("usuario_rol").textContent = this.rectora ? "Rectoría" : "Docente"; if (this.rectora) $("usuario_rol").classList.add("rect");
   },
   ref(p) { return this.db.doc(`usuarios/${this.uid}/${p}`); },
   async loadConfig() {
@@ -1494,8 +1553,22 @@ function proximaEntrega(src = CFG) {
   return l[0] || null;
 }
 function faltantes(s) { return CFG.comps.filter(c => !ENTRADAS.some(e => e.comp === c.id && e.seg === s)); }
+function pintarResumen() {
+  if (!CFG) return;
+  const total = CFG.comps.length * 3, hechos = CFG.comps.reduce((a, c) => a + [1, 2, 3].filter(s => ENTRADAS.some(e => e.comp === c.id && e.seg === s)).length, 0);
+  const pct = total ? Math.round(hechos / total * 100) : 0, fotos = ENTRADAS.reduce((a, e) => a + (e.fotos || []).length, 0), p = proximaEntrega();
+  const incompletas = CFG.comps.filter(c => !completa(c)).length;
+  const st = (tab, c1, c2, ico, val, lab) => `<div class="stat" data-ir="${tab}" style="--c1:${c1};--c2:${c2}"><div class="si">${ico}</div><div class="sv">${val}</div><div class="sl">${lab}</div></div>`;
+  $("stats").innerHTML = st("estado", "#34D399", "#059669", "📈", pct + "%", `avance · ${hechos}/${total}`) + st("estado", "#22D3EE", "#3B82F6", "📝", ENTRADAS.length, "registros") + st("estado", "#FBBF24", "#F97316", "🖼️", fotos, "fotos") +
+    st("planear", p && p.dias <= 7 ? "#FB7185" : "#F472B6", p && p.dias <= 7 ? "#E11D48" : "#A855F7", "⏰", p ? p.dias : "—", p ? `días para el S${p.s}` : "sin fechas");
+  $("stats").querySelectorAll("[data-ir]").forEach(x => x.onclick = () => irA(x.dataset.ir));
+  $("b_estado").textContent = `${pct}% completo`;
+  const faltan = total - hechos; $("b_generar").textContent = faltan ? `Faltan ${faltan}` : "¡Todo listo! ✓";
+  $("b_planear").textContent = incompletas ? `${incompletas} por completar` : "Anexos 5 y 2 ✓";
+  $("b_registrar").textContent = p && p.dias <= 20 ? `⏰ ${p.dias} días S${p.s}` : "Nueva evidencia";
+}
 function pintarAvisos() {
-  const A = $("avisos"); if (!CFG) return;
+  const A = $("avisos"); if (!CFG) return; pintarResumen();
   const p = proximaEntrega();
   if (!p) { A.innerHTML = (CFG.s1 || CFG.s2 || CFG.s3) ? "" : `<div class="aviso-card info"><h4>🗓️ Sin fechas de entrega</h4>Define las fechas de S1, S2 y S3 en <b>Planear año</b> para recibir avisos.</div>`; return; }
   const falta = faltantes(p.s);

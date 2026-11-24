@@ -98,6 +98,17 @@
   .err { background:var(--no-bg); color:var(--no); border-radius:12px; padding:10px 12px; font-size:13px; margin-top:10px; white-space:pre-wrap; display:none; }
   input[type=password] { width:100%; padding:12px 13px; border:1.5px solid var(--borde); border-radius:12px; font:inherit; background:var(--campo); color:var(--texto); }
   @keyframes gira { to { transform: rotate(360deg); } } .gira { display:inline-block; animation: gira 1s linear infinite; }
+  .paso { display:flex; gap:10px; align-items:flex-start; padding:8px 0; font-size:14px; }
+  .paso .ic { flex:none; width:24px; text-align:center; }
+  .chip { display:inline-block; font-size:11px; font-weight:800; padding:3px 8px; border-radius:20px; margin-left:6px; vertical-align:middle; }
+  .chip.fun { background:var(--pri-suave); color:var(--pri); } .chip.com { background:color-mix(in srgb,#EC4899 15%,var(--card)); color:#DB2777; }
+  .chip.ok { background:var(--ok-bg); color:var(--ok); } .chip.no { background:var(--no-bg); color:var(--no); }
+  .comp-edit summary { display:flex; align-items:center; gap:6px; flex-wrap:wrap; list-style:none; }
+  .comp-edit summary::-webkit-details-marker { display:none; }
+  .comp-edit summary::before { content:"▸"; color:var(--pri); transition: transform .2s; } .comp-edit[open] summary::before { transform: rotate(90deg); }
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center; z-index:30; padding:12px; }
+  .modal.on { display:flex; } .modal .card { width:100%; max-width:560px; max-height:90vh; overflow:auto; margin:0; }
+  @media (min-width:600px) { .modal { align-items:center; } }
   @media (max-width:520px) { .row { flex-direction:column; gap:0; } nav button { padding:10px 10px 12px; font-size:13px; } }
 </style>
 </head>
@@ -112,6 +123,7 @@
     <button data-tab="registrar" class="on">➕ Registrar</button>
     <button data-tab="estado">📊 Mis evidencias</button>
     <button data-tab="generar">📄 Generar Word</button>
+    <button data-tab="planear">🗓️ Planear año</button>
     <button data-tab="config">⚙️ Configuración</button>
   </nav>
 </header>
@@ -207,14 +219,44 @@
   </div>
 </section>
 
+<!-- ============ PLANEAR ============ -->
+<section id="planear">
+  <div class="card">
+    <h3>🗓️ Planear el año (concertación)</h3>
+    <p>Úsalo en enero para definir con tu evaluador(a) las competencias, las contribuciones, los criterios y lo que vas a entregar en cada seguimiento. Al final descargas el <b>Anexo 5</b> listo para firmar.</p>
+    <div class="row">
+      <div><label>Año</label><input type="text" id="c_anio"></div>
+      <div><label>Fecha S1</label><input type="date" id="c_s1"></div>
+    </div>
+    <div class="row">
+      <div><label>Fecha S2</label><input type="date" id="c_s2"></div>
+      <div><label>Fecha S3</label><input type="date" id="c_s3"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>✅ Revisión</h3>
+    <div id="p_check"></div>
+  </div>
+  <div class="card">
+    <h3>Competencias del año</h3>
+    <p>Toca una competencia para abrirla. Escribe tu idea en pocas palabras y usa <b>✨ Sugerir con IA</b> para que redacte la contribución, el criterio y lo que va en S1, S2 y S3. Luego ajústalo con tu evaluador(a).</p>
+    <div id="c_comps"></div>
+    <label>Agregar competencia</label>
+    <div class="row"><div><select id="p_nueva"></select></div><div style="flex:0 0 auto"><button class="btn sec" id="c_add">➕ Agregar</button></div></div>
+  </div>
+  <button class="btn grande" id="p_guardar">💾 Guardar planeación</button>
+  <div class="acciones" style="margin-top:12px"><button class="btn sec grande" id="p_anexo5">📄 Descargar Anexo 5 (Word)</button></div>
+  <div class="card" style="margin-top:16px">
+    <h3>🔄 Empezar un año nuevo</h3>
+    <p>Pasa al año siguiente: borra las evidencias registradas (descarga antes la copia de seguridad) y te deja planear las nuevas competencias.</p>
+    <button class="btn peligro" id="c_reset">🔄 Empezar año nuevo</button>
+  </div>
+</section>
+
 <!-- ============ CONFIG ============ -->
 <section id="config">
   <div class="card">
-    <h3 style="margin-top:0">Datos generales</h3>
-    <div class="row">
-      <div><label>Año</label><input type="text" id="c_anio"></div>
-      <div><label>Ciudad</label><input type="text" id="c_ciudad"></div>
-    </div>
+    <h3 style="margin-top:0">Datos del docente y la institución</h3>
     <div class="row">
       <div><label>Institución</label><input type="text" id="c_inst"></div>
       <div><label>Código DANE</label><input type="text" id="c_dane"></div>
@@ -225,25 +267,16 @@
     </div>
     <div class="row">
       <div><label>Área que enseña</label><input type="text" id="c_areaens"></div>
-      <div><label>Secretaría de Educación</label><input type="text" id="c_sec"></div>
+      <div><label>Ciudad</label><input type="text" id="c_ciudad"></div>
     </div>
+    <label>Secretaría de Educación</label><input type="text" id="c_sec">
     <div class="row">
       <div><label>Evaluador(a)</label><input type="text" id="c_eva"></div>
       <div><label>Cédula evaluador(a)</label><input type="text" id="c_evacc"></div>
     </div>
     <label>Cargo del evaluador(a)</label><input type="text" id="c_evacargo">
-    <div class="row">
-      <div><label>Fecha S1</label><input type="date" id="c_s1"></div>
-      <div><label>Fecha S2</label><input type="date" id="c_s2"></div>
-      <div><label>Fecha S3</label><input type="date" id="c_s3"></div>
-    </div>
   </div>
-  <div class="card">
-    <h3 style="margin-top:0">Competencias concertadas</h3>
-    <p class="hint" style="font-size:14px">Cópialas del Anexo 5 del año. El nombre de la carpeta y el del archivo son los que aparecerán en el .zip.</p>
-    <div id="c_comps"></div>
-    <div class="acciones"><button class="btn sec" id="c_add">➕ Agregar competencia</button></div>
-  </div>
+  <button class="btn grande" id="c_guardar" style="margin-bottom:16px">💾 Guardar datos</button>
   <div class="card">
     <h3>✨ Inteligencia artificial</h3>
     <p>Para redactar los textos con IA necesitas una clave. La de <b>Google Gemini es gratis</b>: entra a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con tu cuenta de Google, toca <b>Create API key</b>, cópiala y pégala aquí. La clave se guarda solo en este dispositivo y no se incluye en la copia de seguridad.</p>
@@ -257,13 +290,15 @@
     <div class="acciones"><button class="btn sec" id="ia_guardar">💾 Guardar clave</button><button class="btn sec" id="ia_probar">🧪 Probar</button></div>
     <div class="hint" id="ia_estado" style="margin-top:8px"></div>
   </div>
-  <button class="btn grande" id="c_guardar">💾 Guardar configuración</button>
-  <div class="card" style="margin-top:14px">
-    <h3 style="margin-top:0">Empezar un año nuevo</h3>
-    <p class="hint" style="font-size:14px">Borra todas las evidencias registradas y conserva la configuración. <b>Descarga primero la copia de seguridad.</b></p>
-    <button class="btn peligro" id="c_reset">🗑️ Borrar evidencias registradas</button>
-  </div>
 </section>
+<div class="modal" id="modal_gpt"><div class="card">
+  <h3>💬 Usar mi ChatGPT</h3>
+  <p><b>1.</b> Ya copié las instrucciones. <a href="#" id="mg_copiar">Copiar de nuevo</a></p>
+  <p><b>2.</b> Abre <a href="https://chatgpt.com/" target="_blank" rel="noopener"><b>ChatGPT</b></a>, pega las instrucciones y envía.</p>
+  <p><b>3.</b> Copia toda la respuesta y pégala aquí:</p>
+  <textarea id="mg_resp" rows="5" placeholder="Pega aquí la respuesta de ChatGPT"></textarea>
+  <div class="acciones"><button class="btn" id="mg_ok">✅ Aplicar</button><button class="btn sec" id="mg_cancel">Cancelar</button></div>
+</div></div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -284,7 +319,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Trabajos elaborados, mejorados y expuestos en el salón de clase con participación estudiantil activa en los 3 seguimientos.",
   "s1": "Informe escrito y fotográfico de los primeros trabajos elaborados en clase: prototipos, guiones y textos de lectura crítica en borrador.",
   "s2": "Informe escrito y registro fotográfico de los trabajos mejorados tras retroalimentación, con ajustes y avances visibles en cada producto.",
-  "s3": "Informe escrito y registro fotográfico de la Expo Aula realizada en el salón de clase, donde los estudiantes exponen sus trabajos finales de tecnología e informática y lectura crítica ante sus compañeros y docentes."
+  "s3": "Informe escrito y registro fotográfico de la Expo Aula realizada en el salón de clase, donde los estudiantes exponen sus trabajos finales de tecnología e informática y lectura crítica ante sus compañeros y docentes.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c2",
@@ -298,7 +335,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Plataforma educativa activa y en constante mejora, con contenidos accesibles para todos los estudiantes, enriquecida en cada seguimiento.",
   "s1": "(Informe documental del proceso de inicio de la plataforma) Diseño y publicación inicial de la plataforma en Google Sites con secciones de videos explicativos, guías descargables y glosario tecnológico. Captura de pantalla de la estructura creada con participación estudiantil.",
   "s2": "(Informe documental del proceso de la actualización de la plataforma) Incorporación de quizzes interactivos mediante Google Forms y publicación de los primeros proyectos de los estudiantes. Registro fotográfico y capturas de los nuevos contenidos añadidos.",
-  "s3": "(Informe documental del proceso de la plataforma finalizada) Plataforma completa con todos los contenidos de tecnología e informática y lectura crítica. Registro de uso activo por parte de los estudiantes, evidenciando consulta, práctica autónoma y trabajos expuestos en la Expo Aula."
+  "s3": "(Informe documental del proceso de la plataforma finalizada) Plataforma completa con todos los contenidos de tecnología e informática y lectura crítica. Registro de uso activo por parte de los estudiantes, evidenciando consulta, práctica autónoma y trabajos expuestos en la Expo Aula.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c3",
@@ -312,7 +351,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Proyecto funcional evaluado en creatividad del diseño, uso adecuado de sensores, calidad de la programación y reflexión sobre el impacto tecnológico, con avances en los 3 seguimientos.",
   "s1": "Informe escrito y fotográfico del diseño inicial de la casa inteligente: esquema de conexiones IoT, selección de sensores y dispositivos, borrador del código de automatización y primeras pruebas de simulación.",
   "s2": "Informe escrito y registro fotográfico del prototipo en construcción tras retroalimentación, con ajustes visibles en las conexiones, mejoras en la programación y avances en la automatización funcional del sistema.",
-  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento, donde los estudiantes demuestran la automatización activa del hogar, sustentan su impacto tecnológico en la vida cotidiana y presentan conclusiones del proceso de aprendizaje."
+  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento, donde los estudiantes demuestran la automatización activa del hogar, sustentan su impacto tecnológico en la vida cotidiana y presentan conclusiones del proceso de aprendizaje.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c4",
@@ -326,7 +367,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Evaluaciones digitales aplicadas al cierre de cada periodo, valoradas según apropiación de conocimientos, resolución de problemas y participación, bajo los criterios del SIEE.",
   "s1": "Diseño y aplicación de la evaluación digital del primer periodo mediante Google Forms, con preguntas de selección múltiple y respuesta abierta sobre los temas trabajados. Informe de resultados con análisis del desempeño estudiantil según criterios del SIEE.",
   "s2": "Aplicación de la evaluación interactiva del segundo periodo mediante Quizizz, aprovechando sus reportes automáticos de desempeño por estudiante. Informe comparativo de avances respecto al periodo anterior, con registro de pantalla de los resultados obtenidos.",
-  "s3": "Aplicación de la evaluación del tercer y cuarto periodo mediante Kahoot y Wordwall, evidenciando participación activa y apropiación final de los contenidos. Informe escrito con análisis global del desempeño en los cuatro periodos, producciones académicas finales y registro fotográfico de las actividades evaluativas. Administrativa Uso de recursos Diseñar e implementar un prototipo de sistema de riego automatizado con Arduino, sensores de humedad, pH, temperatura y nutrientes NPK, que optimice el uso del agua y los recursos del suelo, orientando el proyecto al cuidado ambiental en el marco del PRAES institucional. Evalúa la funcionalidad del prototipo, la integración adecuada de sensores y actuadores, la creatividad en el diseño del sistema, el uso eficiente de los recursos hídricos y la comprensión del impacto ambiental del proyecto en el contexto del PRAES. Registro fotográfico y documental del proceso de construcción del prototipo de riego automatizado, con evidencia de participación estudiantil activa en cada seguimiento."
+  "s3": "Aplicación de la evaluación del tercer y cuarto periodo mediante Kahoot y Wordwall, evidenciando participación activa y apropiación final de los contenidos. Informe escrito con análisis global del desempeño en los cuatro periodos, producciones académicas finales y registro fotográfico de las actividades evaluativas. Administrativa Uso de recursos Diseñar e implementar un prototipo de sistema de riego automatizado con Arduino, sensores de humedad, pH, temperatura y nutrientes NPK, que optimice el uso del agua y los recursos del suelo, orientando el proyecto al cuidado ambiental en el marco del PRAES institucional. Evalúa la funcionalidad del prototipo, la integración adecuada de sensores y actuadores, la creatividad en el diseño del sistema, el uso eficiente de los recursos hídricos y la comprensión del impacto ambiental del proyecto en el contexto del PRAES. Registro fotográfico y documental del proceso de construcción del prototipo de riego automatizado, con evidencia de participación estudiantil activa en cada seguimiento.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c5",
@@ -340,7 +383,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Funcionalidad del prototipo, integración de sensores y actuadores, creatividad del diseño, uso eficiente del agua y comprensión del impacto ambiental.",
   "s1": "Informe escrito y fotográfico del diseño inicial del sistema de riego automatizado: esquema de conexiones del Arduino Mega, selección de sensores (humedad capacitiva x4, pH analógico, DS18B20, NPK RS485), borrador del código y primeras pruebas de simulación. Reflexión sobre el impacto ambiental en el marco del PRAES.",
   "s2": "Informe escrito y registro fotográfico del prototipo en construcción, con avances visibles en la integración de actuadores (bombas solenoide, aspersores), módulo WiFi ESP8266 para alertas y módulo RTC para riego por horario. Ajustes en la programación y evidencia del trabajo colaborativo.",
-  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento: riego automatizado activo, monitoreo en pantalla LCD en tiempo real y conexión a app móvil. Sustentación del impacto ambiental y conclusiones en el marco del PRAES institucional."
+  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento: riego automatizado activo, monitoreo en pantalla LCD en tiempo real y conexión a app móvil. Sustentación del impacto ambiental y conclusiones en el marco del PRAES institucional.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c6",
@@ -354,7 +399,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Consistencia y oportunidad del registro, claridad de los reportes y uso de herramientas digitales conforme al SIEE.",
   "s1": "Informe escrito con registro del seguimiento del primer periodo: asistencia, desempeños observados, compromisos adquiridos y avances académicos individuales. Captura de pantalla de las herramientas digitales utilizadas para el registro.",
   "s2": "Informe escrito con registro del seguimiento del segundo periodo, evidenciando comparativo de avances respecto al periodo anterior. Reporte digital de estudiantes con dificultades y estrategias de mejora implementadas.",
-  "s3": "Informe escrito consolidado del seguimiento de los cuatro periodos académicos, evidenciando evolución del desempeño estudiantil, cumplimiento de compromisos y efectividad de las estrategias de acompañamiento implementadas durante el año escolar. Comunitaria Comunicación institucional Usar las redes sociales institucionales como canal de comunicación asertiva con la comunidad educativa, publicando información relevante sobre entrega de informes académicos, reuniones, comunicados generales y demás actividades estipuladas en el POA institucional. Valora la gestión y mantenimiento activo de las redes sociales institucionales como espacio de comunicación oportuna, clara y responsable con la comunidad educativa, midiendo la pertinencia del contenido publicado y la frecuencia de divulgación en cada seguimiento. Informe escrito y capturas de pantalla de publicaciones realizadas en redes sociales institucionales y registro de las actividades comunicadas a la comunidad educativa en cada periodo."
+  "s3": "Informe escrito consolidado del seguimiento de los cuatro periodos académicos, evidenciando evolución del desempeño estudiantil, cumplimiento de compromisos y efectividad de las estrategias de acompañamiento implementadas durante el año escolar. Comunitaria Comunicación institucional Usar las redes sociales institucionales como canal de comunicación asertiva con la comunidad educativa, publicando información relevante sobre entrega de informes académicos, reuniones, comunicados generales y demás actividades estipuladas en el POA institucional. Valora la gestión y mantenimiento activo de las redes sociales institucionales como espacio de comunicación oportuna, clara y responsable con la comunidad educativa, midiendo la pertinencia del contenido publicado y la frecuencia de divulgación en cada seguimiento. Informe escrito y capturas de pantalla de publicaciones realizadas en redes sociales institucionales y registro de las actividades comunicadas a la comunidad educativa en cada periodo.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c7",
@@ -368,7 +415,9 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Gestión y mantenimiento activo de las redes, pertinencia del contenido y frecuencia de divulgación en cada seguimiento.",
   "s1": "Informe escrito y registro de publicaciones en redes sociales institucionales correspondientes al primer periodo: entrega de informes académicos, convocatoria a reuniones de padres y comunicados generales del POA. Capturas de pantalla con fecha y descripción del contenido publicado.",
   "s2": "Informe escrito y registro de publicaciones del segundo periodo con avances en la estrategia comunicativa: boletines digitales, recordatorios institucionales y difusión de actividades académicas y culturales. Evidencia del alcance e interacción de la comunidad con las publicaciones.",
-  "s3": "Informe escrito y registro consolidado de publicaciones del tercer y cuarto periodo, evidenciando continuidad, variedad de contenidos y uso responsable de las TIC. Informe final con análisis del impacto comunicativo en la comunidad educativa durante el año escolar."
+  "s3": "Informe escrito y registro consolidado de publicaciones del tercer y cuarto periodo, evidenciando continuidad, variedad de contenidos y uso responsable de las TIC. Informe final con análisis del impacto comunicativo en la comunidad educativa durante el año escolar.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c8",
@@ -382,49 +431,57 @@ const COMPETENCIAS_POR_DEFECTO = [
   "criterio": "Pertinencia, calidad y visibilidad de las señales, participación estudiantil e impacto en la seguridad y la convivencia.",
   "s1": "Informe escrito y fotográfico del diagnóstico y diseño inicial de la señalización: identificación de espacios a intervenir, bocetos de señales exteriores (velocidad, horario de paso de estudiantes, identificación de la institución) e interiores (carriles peatonales). Evidencia de la participación estudiantil en el diseño.",
   "s2": "Informe escrito y registro fotográfico del proceso de elaboración e instalación de señales exteriores, indicando reducción de velocidad, horario de paso de estudiantes y presencia de institución educativa. Avances visibles en la demarcación interior de carriles peatonales.",
-  "s3": "Informe escrito y registro fotográfico de la señalización completa instalada: exterior con avisos viales e interior con carriles demarcados. Sustentación del impacto en la seguridad, convivencia y cultura vial de la comunidad educativa. Fotos del proceso y producto final. Competencias comportamentales Competencia Criterios de evaluación Evidencias Descriptor de la evidencia INICIATIVA: 10% Crear timbre escolar automático para el aviso de receso escolar. Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas."
+  "s3": "Informe escrito y registro fotográfico de la señalización completa instalada: exterior con avisos viales e interior con carriles demarcados. Sustentación del impacto en la seguridad, convivencia y cultura vial de la comunidad educativa. Fotos del proceso y producto final. Competencias comportamentales Competencia Criterios de evaluación Evidencias Descriptor de la evidencia INICIATIVA: 10% Crear timbre escolar automático para el aviso de receso escolar. Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas.",
+  "pct": "8.75",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c9",
   "carpeta": "INICIATIVA",
   "archivo": "TIMBRE ESCOLAR AUTOMATICO",
   "area": "Comportamental",
-  "competencia": "Iniciativa (10%)",
+  "competencia": "Iniciativa",
   "tipo": "Comportamental",
   "evidencia": "Timbre escolar automático",
   "contribucion": "Crear un timbre escolar automático para el aviso de receso escolar.",
   "criterio": "Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas.",
   "s1": "Informe escrito y registro fotográfico del proceso de implementación inicial del timbre escolar automático: ensamblaje básico del sistema, pruebas de activación para el aviso de receso escolar y evidencias de funcionamiento preliminar.",
   "s2": "Informe escrito y registro fotográfico de la actualización del sistema: incorporación de componentes como relé de 2 vías y módulo RTC con pines, ajustes en la programación para mejorar la precisión de los horarios y evidencias de pruebas de funcionamiento optimizado.",
-  "s3": "Informe escrito y registro fotográfico del sistema completo: acoplamiento de pantalla para visualización de horarios, configuración inalámbrica del timbre escolar y evaluación del impacto en la organización institucional. Evidencias del producto final en funcionamiento y su efectividad en el entorno escolar."
+  "s3": "Informe escrito y registro fotográfico del sistema completo: acoplamiento de pantalla para visualización de horarios, configuración inalámbrica del timbre escolar y evaluación del impacto en la organización institucional. Evidencias del producto final en funcionamiento y su efectividad en el entorno escolar.",
+  "pct": "10",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c10",
   "carpeta": "COMPROMISO SOCIAL E INSTITUCIONAL",
   "archivo": "AGROSMART ESP32",
   "area": "Comportamental",
-  "competencia": "Compromiso social e institucional (10%)",
+  "competencia": "Compromiso social e institucional",
   "tipo": "Comportamental",
   "evidencia": "AgroSmart ESP32: riego inteligente autónomo para la granja escolar (PRAE)",
   "contribucion": "Crear estrategias para fortalecer el trabajo de la comunidad y su apoyo en las actividades del PRAE mediante el diseño e implementación del sistema AgroSmart ESP32 para la granja escolar.",
   "criterio": "Sistema AgroSmart ESP32 funcional: riego automático basado en sensores de humedad, con control autónomo y monitoreo inalámbrico.",
   "s1": "Informe escrito y registro fotográfico del diseño y prototipo inicial del sistema AgroSmart ESP32: identificación de necesidades de riego en la granja, diseño del sistema, esquemas de conexión (ESP32 + sensor de humedad), desarrollo del prototipo y pruebas iniciales de activación automática.",
   "s2": "Informe escrito y registro fotográfico de la implementación del sistema AgroSmart ESP32: instalación en la granja escolar, integración de componentes (relé, bomba o electroválvula), funcionamiento autónomo según condiciones del suelo y participación de estudiantes y comunidad en el montaje.",
-  "s3": "Informe escrito y registro fotográfico del sistema AgroSmart ESP32 optimizado: mejoras en la precisión del riego, incorporación de monitoreo inalámbrico (WiFi), evaluación del ahorro de agua y del impacto en el PRAE, evidencias del sistema funcionando de manera estable y sostenible."
+  "s3": "Informe escrito y registro fotográfico del sistema AgroSmart ESP32 optimizado: mejoras en la precisión del riego, incorporación de monitoreo inalámbrico (WiFi), evaluación del ahorro de agua y del impacto en el PRAE, evidencias del sistema funcionando de manera estable y sostenible.",
+  "pct": "10",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  },
  {
   "id": "c11",
   "carpeta": "TRABAJO EN EQUIPO",
   "archivo": "MANTENIMIENTO DE EQUIPOS DE COMPUTO",
   "area": "Comportamental",
-  "competencia": "Trabajo en equipo (10%)",
+  "competencia": "Trabajo en equipo",
   "tipo": "Comportamental",
   "evidencia": "Revisión y mantenimiento de equipos de cómputo (sede central y sedes anexas)",
   "contribucion": "Realizar la revisión y el mantenimiento de los computadores de la institución, en la sede central y las sedes anexas, según las necesidades identificadas.",
   "criterio": "Informe técnico del diagnóstico, mantenimiento preventivo y seguimiento periódico, con registro fotográfico de las intervenciones.",
   "s1": "Informe escrito del diagnóstico inicial: elaboración de documento solicitando información sobre las sedes que requieren revisión de equipos, identificación de necesidades, levantamiento de inventario básico de computadores y registro fotográfico del estado inicial de los equipos.",
   "s2": "Informe escrito y registro fotográfico del mantenimiento preventivo: limpieza interna y externa de los equipos, revisión de componentes, optimización del sistema operativo y software, evidencias del trabajo realizado en la sede central y sedes que lo requieran.",
-  "s3": "Informe escrito y registro fotográfico del mantenimiento preventivo periódico (cada 3 meses): seguimiento al estado de los equipos intervenidos, nuevas jornadas de mantenimiento, verificación del rendimiento y funcionalidad, evidencias del impacto en la mejora del servicio tecnológico institucional."
+  "s3": "Informe escrito y registro fotográfico del mantenimiento preventivo periódico (cada 3 meses): seguimiento al estado de los equipos intervenidos, nuevas jornadas de mantenimiento, verificación del rendimiento y funcionalidad, evidencias del impacto en la mejora del servicio tecnológico institucional.",
+  "pct": "10",
+  "soporte": "Informe escrito con registro fotográfico en cada uno de los seguimientos."
  }
 ];
 const CONFIG_POR_DEFECTO = {
@@ -469,6 +526,7 @@ function irA(tab) {
   if (tab === "estado") pintarEstado();
   if (tab === "generar") pintarFaltantes();
   if (tab === "config") { pintarConfig(); pintarIA(); }
+  if (tab === "planear") pintarConfig();
   window.scrollTo(0, 0);
 }
 
@@ -595,30 +653,176 @@ function pintarLista() {
   const ra = $("reg_aqui"); if (ra) ra.onclick = ev => { ev.preventDefault(); const f = filtro; irA("registrar"); limpiarForm(); $("f_comp").value = f.c; mostrarDescComp(); document.querySelector(`input[name=f_seg][value="${f.s}"]`).checked = true; };
 }
 
-// =================================================================== CONFIGURACIÓN
+// =================================================================== CONFIGURACIÓN Y PLANEACIÓN
+const CATALOGO = [
+  { competencia: "Dominio curricular", tipo: "Funcional", area: "Académica" },
+  { competencia: "Planeación y organización", tipo: "Funcional", area: "Académica" },
+  { competencia: "Pedagógica y didáctica", tipo: "Funcional", area: "Académica" },
+  { competencia: "Evaluación del aprendizaje", tipo: "Funcional", area: "Académica" },
+  { competencia: "Uso de recursos", tipo: "Funcional", area: "Administrativa" },
+  { competencia: "Seguimiento de procesos", tipo: "Funcional", area: "Administrativa" },
+  { competencia: "Comunicación institucional", tipo: "Funcional", area: "Comunitaria" },
+  { competencia: "Comunidad y entorno", tipo: "Funcional", area: "Comunitaria" },
+  { competencia: "Liderazgo", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Comunicación y relaciones interpersonales", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Trabajo en equipo", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Negociación y mediación", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Compromiso social e institucional", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Iniciativa", tipo: "Comportamental", area: "Comportamental" },
+  { competencia: "Orientación al logro", tipo: "Comportamental", area: "Comportamental" },
+];
+const norm = t => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s*\(\d+(?:[.,]\d+)?%\)/, "").trim().toLowerCase();
+const ordenCat = c => { const i = CATALOGO.findIndex(x => norm(x.competencia) === norm(c.competencia)); return i < 0 ? 99 : i; };
+const carpetaDe = t => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ,]/g, " ").replace(/\s+/g, " ").trim();
+const num = v => parseFloat(String(v || "0").replace(",", ".")) || 0;
+const fmtPct = v => (Math.round(num(v) * 100) / 100).toString().replace(".", ",") + "%";
+
 const CAMPOS = ["anio", "ciudad", "inst", "dane", "doc", "cc", "areaens", "sec", "eva", "evacc", "evacargo", "s1", "s2", "s3"];
-const CAMPOS_COMP = [["competencia", "Competencia"], ["tipo", "Tipo (Funcional o Comportamental)"], ["area", "Área de gestión (Académica, Administrativa, Comunitaria o Comportamental)"], ["evidencia", "Nombre de la evidencia"], ["contribucion", "Contribución individual"], ["criterio", "Criterio de evaluación"], ["s1", "Qué pide el S1 (descriptor del Anexo 5)"], ["s2", "Qué pide el S2"], ["s3", "Qué pide el S3"], ["carpeta", "Nombre de la carpeta"], ["archivo", "Nombre del archivo Word"]];
+const CAMPOS_COMP = [["pct", "Porcentaje (%)", "t"], ["idea", "Tu idea (para la IA): ¿qué proyecto o actividad harás?", "a"], ["evidencia", "Nombre corto de la evidencia (título del Word)", "t"], ["contribucion", "Contribución individual", "a"], ["criterio", "Criterio de evaluación", "a"], ["soporte", "Evidencias (cómo se demuestra)", "a"], ["s1", "Descriptor S1", "a"], ["s2", "Descriptor S2", "a"], ["s3", "Descriptor S3", "a"], ["carpeta", "Nombre de la carpeta", "t"], ["archivo", "Nombre del archivo Word", "t"]];
+function completa(c) { return ["evidencia", "contribucion", "criterio", "s1", "s2", "s3"].every(k => (c[k] || "").trim()); }
 function pintarConfig() {
-  CAMPOS.forEach(k => $("c_" + k).value = CFG[k] || "");
-  $("c_comps").innerHTML = CFG.comps.map((c, i) => `<details class="comp-edit" data-i="${i}"><summary>${i + 1}. ${esc(c.competencia)}</summary>
-    ${CAMPOS_COMP.map(([k, n]) => `<label>${n}</label>${["contribucion", "criterio", "s1", "s2", "s3"].includes(k) ? `<textarea data-k="${k}" rows="3">${esc(c[k])}</textarea>` : `<input type="text" data-k="${k}" value="${esc(c[k])}">`}`).join("")}
-    <div class="acciones"><button class="btn peligro" data-quitar="${i}">Quitar esta competencia</button></div></details>`).join("");
+  CAMPOS.forEach(k => { const el = $("c_" + k); if (el) el.value = CFG[k] || ""; });
+  CFG.comps.sort((a, b) => ordenCat(a) - ordenCat(b));
+  $("c_comps").innerHTML = CFG.comps.map((c, i) => `<details class="comp-edit" data-i="${i}"><summary>${esc(c.competencia)}<span class="chip ${c.tipo === "Comportamental" ? "com" : "fun"}">${c.tipo === "Comportamental" ? "Comportamental" : esc(c.area)}</span><span class="chip">${fmtPct(c.pct)}</span><span class="chip ${completa(c) ? "ok" : "no"}">${completa(c) ? "✓ completa" : "falta"}</span></summary>
+    ${CAMPOS_COMP.map(([k, n, t]) => `<label>${n}</label>${t === "a" ? `<textarea data-k="${k}" rows="${k === "idea" ? 2 : 3}">${esc(c[k])}</textarea>` : `<input type="text" data-k="${k}" value="${esc(c[k])}">`}`).join("")}
+    <div class="acciones"><button class="btn ia" data-ia="${i}">✨ Sugerir con IA</button><button class="btn peligro" data-quitar="${i}">Quitar</button></div><div class="err" data-err="${i}"></div></details>`).join("");
   $("c_comps").querySelectorAll("[data-quitar]").forEach(b => b.onclick = () => {
     const c = CFG.comps[+b.dataset.quitar];
-    if (ENTRADAS.some(e => e.comp === c.id)) return toast("Esta competencia tiene registros. Bórralos o muévelos antes de quitarla.", 4000);
+    if (ENTRADAS.some(e => e.comp === c.id)) return toast("Esta competencia tiene registros este año. Bórralos antes de quitarla.", 4000);
+    if (!confirm(`¿Quitar "${c.competencia}"?`)) return;
     leerConfigForm(); CFG.comps.splice(+b.dataset.quitar, 1); pintarConfig();
   });
+  $("c_comps").querySelectorAll("[data-ia]").forEach(b => b.onclick = () => sugerirComp(+b.dataset.ia, b));
+  $("c_comps").querySelectorAll("input,textarea").forEach(x => x.oninput = () => { leerConfigForm(); pintarCheck(); });
+  const usadas = CFG.comps.map(c => norm(c.competencia));
+  $("p_nueva").innerHTML = CATALOGO.filter(x => !usadas.includes(norm(x.competencia))).map(x => `<option>${x.competencia}</option>`).join("") + `<option value="__otra">Otra (escribir nombre)…</option>`;
+  pintarCheck();
 }
 function leerConfigForm() {
-  CAMPOS.forEach(k => CFG[k] = $("c_" + k).value.trim());
+  CAMPOS.forEach(k => { const el = $("c_" + k); if (el) CFG[k] = el.value.trim(); });
   $("c_comps").querySelectorAll(".comp-edit").forEach(d => { const c = CFG.comps[+d.dataset.i]; d.querySelectorAll("[data-k]").forEach(x => c[x.dataset.k] = x.value.trim()); });
 }
-$("c_add").onclick = () => { leerConfigForm(); CFG.comps.push({ id: "c" + Date.now(), competencia: "Nueva competencia", tipo: "Funcional", area: "Académica", evidencia: "", contribucion: "", criterio: "", carpeta: "NUEVA COMPETENCIA", archivo: "EVIDENCIA" }); pintarConfig(); const all = $("c_comps").querySelectorAll("details"); all[all.length - 1].open = true; };
-$("c_guardar").onclick = async () => { leerConfigForm(); await DB.set("config", CFG); llenarSelectComp(); pintarSub(); toast("✅ Configuración guardada"); };
+function pintarCheck() {
+  const fun = CFG.comps.filter(c => c.tipo !== "Comportamental"), com = CFG.comps.filter(c => c.tipo === "Comportamental");
+  const faltanF = CATALOGO.filter(x => x.tipo === "Funcional" && !fun.some(c => norm(c.competencia) === norm(x.competencia))).map(x => x.competencia);
+  const total = CFG.comps.reduce((a, c) => a + num(c.pct), 0), pf = fun.reduce((a, c) => a + num(c.pct), 0), pc = com.reduce((a, c) => a + num(c.pct), 0);
+  const incompletas = CFG.comps.filter(c => !completa(c)).map(c => c.competencia);
+  const L = (ok, t) => `<div class="paso"><span class="ic">${ok ? "✅" : "⚠️"}</span><span>${t}</span></div>`;
+  $("p_check").innerHTML =
+    L(!faltanF.length, faltanF.length ? `Faltan competencias funcionales: <b>${faltanF.map(esc).join(", ")}</b>` : `Las 8 competencias funcionales están incluidas.`) +
+    L(com.length === 3, `Competencias comportamentales: <b>${com.length} de 3</b>${com.length > 3 ? " (sobran)" : ""}.`) +
+    L(Math.abs(total - 100) < 0.01, `Porcentajes: funcionales ${fmtPct(pf)} + comportamentales ${fmtPct(pc)} = <b>${fmtPct(total)}</b> (debe sumar 100%).`) +
+    L(!incompletas.length, incompletas.length ? `Sin completar: ${incompletas.map(esc).join(", ")}` : `Todas las competencias tienen contribución, criterio y descriptores.`) +
+    L(CFG.s1 && CFG.s2 && CFG.s3, `Fechas de seguimiento ${CFG.s1 && CFG.s2 && CFG.s3 ? "definidas" : "pendientes"}.`);
+}
+$("c_add").onclick = () => {
+  leerConfigForm();
+  let nombre = $("p_nueva").value;
+  if (nombre === "__otra") { nombre = prompt("Nombre de la competencia:"); if (!nombre) return; }
+  const cat = CATALOGO.find(x => x.competencia === nombre) || { competencia: nombre, tipo: confirm("¿Es una competencia comportamental? (Aceptar = sí, Cancelar = funcional)") ? "Comportamental" : "Funcional", area: "Académica" };
+  if (cat.tipo === "Comportamental" && CFG.comps.filter(c => c.tipo === "Comportamental").length >= 3) toast("Ya tienes 3 comportamentales; normalmente se escogen solo 3.", 4000);
+  CFG.comps.push({ id: "c" + Date.now(), competencia: cat.competencia, tipo: cat.tipo, area: cat.tipo === "Comportamental" ? "Comportamental" : cat.area, pct: cat.tipo === "Comportamental" ? "10" : "8.75",
+    evidencia: "", contribucion: "", criterio: "", soporte: "Informe escrito con registro fotográfico en cada uno de los seguimientos.", s1: "", s2: "", s3: "", idea: "", carpeta: carpetaDe(cat.competencia), archivo: "EVIDENCIA" });
+  pintarConfig();
+  const i = CFG.comps.findIndex(c => c.competencia === cat.competencia); const d = $("c_comps").querySelector(`details[data-i="${i}"]`); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
+};
+async function guardarCFG(msg) { leerConfigForm(); await DB.set("config", CFG); llenarSelectComp(); pintarSub(); pintarCheck(); toast(msg); }
+$("c_guardar").onclick = () => guardarCFG("✅ Datos guardados");
+$("p_guardar").onclick = () => guardarCFG("✅ Planeación guardada");
 $("c_reset").onclick = async () => {
-  if (!confirm("¿Borrar TODAS las evidencias registradas? Descarga antes la copia de seguridad.")) return;
-  if (!confirm("Confirma de nuevo: se borrarán todos los registros y fotos.")) return;
-  await DB.clear(); ENTRADAS = []; toast("Evidencias borradas. Ya puedes empezar el año nuevo.");
+  if (!confirm("Esto borra TODAS las evidencias registradas (fotos y textos) para empezar un año nuevo. ¿Ya descargaste la copia de seguridad?")) return;
+  const base = confirm("¿Quieres conservar las competencias de este año como base para el nuevo?\n\nAceptar = conservarlas (luego las ajustas)\nCancelar = empezar con las 8 funcionales vacías");
+  await DB.clear(); ENTRADAS = [];
+  const y = parseInt(CFG.anio) || new Date().getFullYear(); CFG.anio = String(y + 1); CFG.s1 = CFG.s2 = CFG.s3 = "";
+  if (!base) CFG.comps = CATALOGO.filter(x => x.tipo === "Funcional").map((x, i) => ({ id: "c" + Date.now() + i, competencia: x.competencia, tipo: x.tipo, area: x.area, pct: "8.75", evidencia: "", contribucion: "", criterio: "", soporte: "Informe escrito con registro fotográfico en cada uno de los seguimientos.", s1: "", s2: "", s3: "", idea: "", carpeta: carpetaDe(x.competencia), archivo: "EVIDENCIA" }));
+  await DB.set("config", CFG); llenarSelectComp(); pintarSub(); pintarConfig();
+  toast(`Listo: año ${CFG.anio}. Ahora planea tus competencias${base ? "" : " y agrega las 3 comportamentales"}.`, 5000);
+};
+
+// ---- IA genérica: usa la clave si existe; si no, copiar y pegar con ChatGPT
+function pedirIA(prompt) {
+  if (IA.cfg().key) return llamarIA(prompt, []).then(r => r.texto);
+  return new Promise(async (ok, fail) => {
+    const m = $("modal_gpt"); $("mg_resp").value = ""; m.classList.add("on");
+    const copiado = await copiarTexto(prompt); toast(copiado ? "📋 Instrucciones copiadas" : "Toca 'Copiar de nuevo'");
+    $("mg_copiar").onclick = async e => { e.preventDefault(); toast((await copiarTexto(prompt)) ? "📋 Copiado" : "No se pudo copiar"); };
+    $("mg_ok").onclick = () => { m.classList.remove("on"); ok($("mg_resp").value); };
+    $("mg_cancel").onclick = () => { m.classList.remove("on"); fail(new Error("Cancelado")); };
+  });
+}
+async function sugerirComp(i, btn) {
+  leerConfigForm();
+  const c = CFG.comps[i], err = $("c_comps").querySelector(`[data-err="${i}"]`); err.style.display = "none";
+  const prompt = `Eres un asesor de docentes colombianos en la Evaluación Anual de Desempeño Laboral (Decreto Ley 1278 de 2002, Guía 31 del MEN). Ayúdame a redactar la concertación (Anexo 5) de UNA competencia.
+
+DATOS
+- Institución: ${CFG.inst} (${CFG.ciudad}). Área que enseña el docente: ${CFG.areaens}.
+- Competencia: ${c.competencia} (${c.tipo === "Comportamental" ? "competencia comportamental" : "competencia funcional, área de gestión " + c.area}).
+- Idea del docente: ${c.idea || c.evidencia || "(sin idea; propón una actividad realista y sencilla para una institución rural relacionada con el área que enseña)"}
+- Lo que ya está escrito (puedes mejorarlo): contribución: ${c.contribucion || "-"} | criterio: ${c.criterio || "-"} | S1: ${c.s1 || "-"} | S2: ${c.s2 || "-"} | S3: ${c.s3 || "-"}
+- El año tiene 3 seguimientos: S1 (inicio, diseño o diagnóstico), S2 (desarrollo o implementación) y S3 (resultado final e impacto).
+
+INSTRUCCIONES
+- Español de Colombia, formal, claro, en infinitivo para la contribución ("Diseñar…", "Implementar…").
+- La contribución debe ser concreta, medible y realista para un docente.
+- Cada descriptor S1, S2 y S3 debe empezar con "Informe escrito y registro fotográfico de…" y decir qué se entregará en ese seguimiento, mostrando avance de uno a otro.
+- No inventes datos numéricos de la institución.
+
+Responde SOLO con un objeto JSON válido:
+{"evidencia": "nombre corto (máx. 8 palabras)", "contribucion": "...", "criterio": "...", "soporte": "cómo se demuestra (1 oración)", "s1": "...", "s2": "...", "s3": "...", "archivo": "NOMBRE CORTO EN MAYÚSCULAS SIN TILDES"}`;
+  const txt0 = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Pensando…';
+  try {
+    const j = extraerJSON(await pedirIA(prompt));
+    ["evidencia", "contribucion", "criterio", "soporte", "s1", "s2", "s3"].forEach(k => { if (j[k]) c[k] = j[k]; });
+    if (j.archivo) c.archivo = carpetaDe(j.archivo);
+    pintarConfig(); const d = $("c_comps").querySelector(`details[data-i="${CFG.comps.indexOf(c)}"]`); if (d) d.open = true;
+    toast("✨ Sugerencia lista. Revísala y toca Guardar planeación.", 4000);
+  } catch (er) { if (er.message !== "Cancelado") { err.style.display = "block"; err.textContent = er.message; } }
+  btn.disabled = false; btn.textContent = txt0;
+}
+
+// ---- Anexo 5 en Word
+async function anexo5Blob() {
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType, BorderStyle, VerticalAlign, TableLayoutType, PageOrientation, VerticalMergeType } = window.docx;
+  const F = "Arial", AZ = "1F4E79", AC = "DCE6F1";
+  const r = (t, o = {}) => new TextRun({ text: t, font: F, size: o.size || 16, bold: o.bold, color: o.color });
+  const bd = { style: BorderStyle.SINGLE, size: 4, color: "808080" }, B = { top: bd, bottom: bd, left: bd, right: bd };
+  const cel = (t, w, o = {}) => new TableCell({ width: { size: w, type: WidthType.DXA }, borders: B, columnSpan: o.span, verticalMerge: o.vm,
+    shading: o.fill ? { fill: o.fill, type: ShadingType.CLEAR, color: "auto" } : undefined, margins: { top: 50, bottom: 50, left: 80, right: 80 }, verticalAlign: VerticalAlign.CENTER,
+    children: String(t).split("\n").map(l => new Paragraph({ alignment: o.align || AlignmentType.LEFT, spacing: { after: 30 }, children: [r(l, o)] })) });
+  const tbl = (ws, rows) => new Table({ width: { size: ws.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: ws, layout: TableLayoutType.FIXED, rows });
+  const P = (t, o = {}) => new Paragraph({ alignment: o.align || AlignmentType.CENTER, spacing: { after: o.after ?? 60 }, children: [r(t, { size: o.size || 20, bold: o.bold, color: o.color })] });
+  const fun = CFG.comps.filter(c => c.tipo !== "Comportamental").sort((a, b) => ordenCat(a) - ordenCat(b)), com = CFG.comps.filter(c => c.tipo === "Comportamental");
+  const desc = c => `S1: ${c.s1 || ""}\nS2: ${c.s2 || ""}\nS3: ${c.s3 || ""}`;
+  const ws = [1150, 650, 1350, 2400, 2100, 1700, 3610];
+  const H = (t, w) => cel(t, w, { bold: true, fill: AC, align: AlignmentType.CENTER });
+  const rows = [new TableRow({ tableHeader: true, children: [cel("Competencias funcionales", 12960, { span: 7, bold: true, fill: AZ, color: "FFFFFF", align: AlignmentType.CENTER, size: 18 })] }),
+    new TableRow({ tableHeader: true, children: [H("Área de gestión", ws[0]), H("%", ws[1]), H("Competencia", ws[2]), H("Contribución individual", ws[3]), H("Criterios de evaluación", ws[4]), H("Evidencias", ws[5]), H("Descriptor de la evidencia", ws[6])] })];
+  const areas = [...new Set(fun.map(c => c.area))];
+  areas.forEach(a => { const cs = fun.filter(c => c.area === a), pa = cs.reduce((x, c) => x + num(c.pct), 0);
+    cs.forEach((c, k) => rows.push(new TableRow({ cantSplit: true, children: [cel(k ? "" : a, ws[0], { vm: k ? VerticalMergeType.CONTINUE : VerticalMergeType.RESTART, bold: true, align: AlignmentType.CENTER }), cel(k ? "" : fmtPct(pa), ws[1], { vm: k ? VerticalMergeType.CONTINUE : VerticalMergeType.RESTART, align: AlignmentType.CENTER }),
+      cel(c.competencia, ws[2], { bold: true, align: AlignmentType.CENTER }), cel(c.contribucion || "", ws[3]), cel(c.criterio || "", ws[4]), cel(c.soporte || c.evidencia || "", ws[5]), cel(desc(c), ws[6])] }))); });
+  const wc = [2200, 3000, 2400, 1900, 3460];
+  const rowsC = [new TableRow({ tableHeader: true, children: [cel("Competencias comportamentales", 12960, { span: 5, bold: true, fill: AZ, color: "FFFFFF", align: AlignmentType.CENTER, size: 18 })] }),
+    new TableRow({ tableHeader: true, children: [H("Competencia", wc[0]), H("Contribución individual", wc[1]), H("Criterios de evaluación", wc[2]), H("Evidencias", wc[3]), H("Descriptor de la evidencia", wc[4])] }),
+    ...com.map(c => new TableRow({ cantSplit: true, children: [cel(`${c.competencia.toUpperCase()}: ${fmtPct(c.pct)}`, wc[0], { bold: true }), cel(c.contribucion || "", wc[1]), cel(c.criterio || "", wc[2]), cel(c.soporte || c.evidencia || "", wc[3]), cel(desc(c), wc[4])] }))];
+  const fw = [6480, 6480];
+  const firmas = tbl(fw, [
+    new TableRow({ children: [cel("Nombre completo del evaluado: " + CFG.doc, fw[0], { bold: true, size: 18 }), cel("Nombre completo del evaluador: " + CFG.eva, fw[1], { bold: true, size: 18 })] }),
+    new TableRow({ children: [cel("Firma y número de cédula\n\n\nC.C. " + CFG.cc, fw[0], { size: 18 }), cel("Firma y número de cédula\n\n\nC.C. " + (CFG.evacc || "____________"), fw[1], { size: 18 })] }),
+    new TableRow({ children: [cel(`Ciudad y fecha de concertación: ${CFG.ciudad}, ____ de ______________ de ${CFG.anio}`, 12960, { span: 2, bold: true, size: 18 })] })]);
+  const doc = new Document({ sections: [{ properties: { page: { size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE }, margin: { top: 900, bottom: 900, left: 640, right: 640 } } }, children: [
+    P("EVALUACIÓN ANUAL DE DESEMPEÑO LABORAL — DOCENTES Y DIRECTIVOS DOCENTES DECRETO LEY 1278 DE 2002", { size: 16, color: "595959" }),
+    P("RESUMEN COMPETENCIAS, CONTRIBUCIONES, CRITERIOS Y EVIDENCIAS", { size: 24, bold: true, color: AZ }),
+    P(`Docente: ${CFG.doc}   ·   ${CFG.inst}   ·   Año ${CFG.anio}`, { size: 20, bold: true, after: 200 }),
+    tbl(ws, rows), new Paragraph({ children: [] }), tbl(wc, rowsC), new Paragraph({ children: [] }), firmas,
+    P("NOTA: El docente o directivo docente evaluado debe conservar una copia firmada de este Anexo.", { size: 16, align: AlignmentType.LEFT, after: 0 })] }] });
+  return Packer.toBlob(doc);
+}
+$("p_anexo5").onclick = async () => {
+  leerConfigForm();
+  try { descargar(await anexo5Blob(), `ANEXO 5 ${CFG.anio} ${carpetaDe(CFG.doc)}.docx`); toast("📄 Anexo 5 descargado"); }
+  catch (er) { toast("No se pudo generar el Anexo 5: " + er.message, 5000); }
 };
 function pintarSub() { $("subtitulo").textContent = `${CFG.doc} · Evaluación de desempeño ${CFG.anio}`; }
 
@@ -792,6 +996,7 @@ async function generarZip() {
     new TableRow({ children: [cell("Establecimiento educativo: " + CFG.inst, 8640, { span: 2, bold: true }), cell("Código DANE: " + CFG.dane, 4320, { bold: true })] }),
     new TableRow({ children: [cell("Nombre del evaluado: " + CFG.doc, 8640, { span: 2, bold: true }), cell("CC " + CFG.cc, 4320, { bold: true })] }),
     new TableRow({ children: [cell("Nombre del evaluador: " + CFG.eva, 8640, { span: 2, bold: true }), cell("CC " + (CFG.evacc || "__________"), 4320, { bold: true })] })]);
+  raiz.file("ANEXO 5 RESUMEN DE COMPETENCIAS.docx", await anexo5Blob());
   raiz.file("ANEXO 2 TABLA RESUMEN DE EVIDENCIAS.docx", await Packer.toBlob(mkDoc([
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [run("ANEXO 2. TABLA RESUMEN DE EVIDENCIAS", { bold: true, size: 26, color: AZUL })] }),
     enc, new Paragraph({ children: [] }), table(ws, filas)], true)));
@@ -1004,6 +1209,7 @@ pintarBotonTema();
   try { await DB.open(); } catch { alert("Este navegador no permite guardar datos. Prueba con Chrome."); return; }
   CFG = await DB.get("config");
   if (!CFG) { CFG = JSON.parse(JSON.stringify(CONFIG_POR_DEFECTO)); await DB.set("config", CFG); }
+  CFG.comps.forEach(c => { const m = (c.competencia || "").match(/\s*\((\d+(?:[.,]\d+)?)%\)/); if (m) { c.competencia = c.competencia.slice(0, m.index); if (!c.pct) c.pct = m[1]; } if (!c.pct) c.pct = c.tipo === "Comportamental" ? "10" : "8.75"; if (c.soporte === undefined) c.soporte = "Informe escrito con registro fotográfico en cada uno de los seguimientos."; });
   CFG.comps.forEach(c => { const d = COMPETENCIAS_POR_DEFECTO.find(x => x.id === c.id && x.competencia === c.competencia); if (d) ["s1", "s2", "s3"].forEach(k => { if (!c[k]) c[k] = d[k]; }); });
   ENTRADAS = await DB.all();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});

@@ -1,6 +1,6 @@
 rules_version = '2';
 // Reglas de seguridad: cada docente solo ve y edita lo suyo; la rectora ve todo.
-// IMPORTANTE: cambia el correo de la rectora (en minúsculas) en esRectora().
+// Rectoría: docentes.ierss@hotmail.com y andres.yair.renteria.murillo@gmail.com (en minúsculas).
 service cloud.firestore {
   match /databases/{database}/documents {
     function conSesion() {
@@ -10,7 +10,7 @@ service cloud.firestore {
       return request.auth.token.email.lower();
     }
     function esRectora() {
-      return conSesion() && correo() in ['correo.de.la.rectora@gmail.com'];
+      return conSesion() && correo() in ['docentes.ierss@hotmail.com', 'andres.yair.renteria.murillo@gmail.com'];
     }
     function autorizado() {
       return esRectora() || (conSesion()

@@ -1,19 +1,15 @@
 // ============================================================================
 // CONFIGURACIÓN DE FIREBASE (modo varios docentes)
-// Si lo dejas en null, la página funciona en modo individual (todo se guarda
-// solo en el celular de quien la usa).
-// Para activar el modo para varios docentes, sigue la guía GUIA_FIREBASE.md
-// y pega aquí los datos que te da Firebase.
+// Para volver al modo individual, cambia FIREBASE_CONFIG por null.
 // ============================================================================
-window.FIREBASE_CONFIG = null;
-/* Ejemplo:
 window.FIREBASE_CONFIG = {
-  apiKey: "AIza...",
+  apiKey: "AIzaSyDU_nIZGw-uG3SEM93fa5Z69_nzaN8EYGg",
   authDomain: "evidencias-ier.firebaseapp.com",
   projectId: "evidencias-ier",
-  appId: "1:123:web:abc"
+  storageBucket: "evidencias-ier.firebasestorage.app",
+  messagingSenderId: "913282473829",
+  appId: "1:913282473829:web:9861eaa9a1ae919d1b0b8c"
 };
-*/
 
-// Correo(s) de la rectora. Debe ser el MISMO correo que pongas en firestore.rules.
-window.RECTORAS = ["correo.de.la.rectora@gmail.com"];
+// Correo(s) de la rectora. Debe ser el MISMO correo que está en firestore.rules.
+window.RECTORAS = ["docentes.ierss@hotmail.com", "andres.yair.renteria.murillo@gmail.com"];

@@ -27,6 +27,21 @@ Al final generas un .zip con una carpeta por competencia y un Word por evidencia
 - **Mis evidencias**: muestra el avance del año. En rojo están los seguimientos que aún no tienen nada.
 - **Generar Word**: descarga el .zip con todas las carpetas listas para entregar.
 
+## ✨ Redactar con IA
+
+La página puede escribir el texto de cada evidencia a partir de las fotos y de unas notas cortas.
+
+1. Consigue una clave gratis de Google Gemini en https://aistudio.google.com/apikey (con tu cuenta de Google, botón **Create API key**).
+2. En la página ve a **⚙️ Configuración → Inteligencia artificial**, pega la clave, toca **Guardar clave** y luego **Probar**.
+3. Al registrar: agrega las fotos, escribe unas notas cortas en "¿Qué se hizo?" y toca **✨ Redactar con IA**.
+4. Revisa el texto, completa lo que quede entre [corchetes] y guarda.
+
+La clave se guarda solo en tu dispositivo. La IA no inventa cifras: lo que no sepa lo deja entre corchetes para que lo completes.
+
+## Si no se descarga el Word
+
+Algunos navegadores (por ejemplo Brave) bloquean la descarga automática. Después de generar aparece el botón **⬇️ Si no se descargó solo, toca aquí**. Si sale un mensaje rojo de error, toma una captura.
+
 ## Importante: dónde quedan guardados los datos
 
 Las evidencias se guardan **dentro del navegador del dispositivo** donde las registras (no se suben a GitHub ni a internet).

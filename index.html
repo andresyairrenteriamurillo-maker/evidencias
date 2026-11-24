@@ -91,6 +91,13 @@
   .barra { display:none; }
   .aviso { background:var(--aviso-bg); border:1px solid var(--aviso-bd); border-radius:12px; padding:12px 14px; font-size:14px; line-height:1.5; }
   ::-webkit-scrollbar { height:8px; width:8px; } ::-webkit-scrollbar-thumb { background:var(--borde); border-radius:8px; }
+  .btn.ia { background:linear-gradient(135deg,#F59E0B,#EC4899 55%,#8B5CF6); box-shadow:0 4px 14px rgba(236,72,153,.35); }
+  .ia-box { margin-top:16px; padding:14px; border-radius:14px; background:linear-gradient(135deg, color-mix(in srgb,#F59E0B 12%,var(--card)), color-mix(in srgb,#8B5CF6 12%,var(--card))); border:1px solid var(--borde); }
+  .ia-box p { margin:6px 0 10px; font-size:13px; color:var(--suave); }
+  .descarga { display:none; margin-top:12px; text-decoration:none; }
+  .err { background:var(--no-bg); color:var(--no); border-radius:12px; padding:10px 12px; font-size:13px; margin-top:10px; white-space:pre-wrap; display:none; }
+  input[type=password] { width:100%; padding:12px 13px; border:1.5px solid var(--borde); border-radius:12px; font:inherit; background:var(--campo); color:var(--texto); }
+  @keyframes gira { to { transform: rotate(360deg); } } .gira { display:inline-block; animation: gira 1s linear infinite; }
   @media (max-width:520px) { .row { flex-direction:column; gap:0; } nav button { padding:10px 10px 12px; font-size:13px; } }
 </style>
 </head>
@@ -130,7 +137,7 @@
       <div><label>Título corto <span class="hint">(ej.: Construcción de la maqueta)</span></label><input type="text" id="f_titulo"></div>
     </div>
 
-    <label>¿Qué se hizo? <span class="hint">Cuéntalo con tus palabras. Deja una línea en blanco para separar párrafos.</span></label>
+    <label>¿Qué se hizo? <span class="hint">Cuéntalo con tus palabras o escribe notas cortas y usa ✨ Redactar con IA.</span></label>
     <textarea id="f_desc" rows="5"></textarea>
 
     <label>Actividades realizadas <span class="hint">(una por línea, opcional)</span></label>
@@ -145,6 +152,12 @@
     </div>
     <input type="file" id="f_input" accept="image/*" multiple style="display:none">
 
+    <div class="ia-box">
+      <b>✨ Redactar con IA</b>
+      <p>Agrega las fotos y escribe en "¿Qué se hizo?" unas notas cortas (por ejemplo: <i>grado 8, armaron la maqueta con cartón, 25 estudiantes</i>). La IA redacta el título, la descripción, las actividades, los resultados y los pies de foto. Revisa siempre el texto antes de guardar.</p>
+      <button class="btn ia grande" id="f_ia">✨ Redactar con IA</button>
+      <div class="err" id="f_ia_err"></div>
+    </div>
     <div style="margin-top:18px; display:flex; gap:10px;">
       <button class="btn grande" id="f_guardar">💾 Guardar evidencia</button>
     </div>
@@ -173,6 +186,8 @@
     <div id="gen_faltan" class="aviso" style="display:none"></div>
     <div style="margin-top:14px"><button class="btn grande" id="btn_generar">📦 Descargar carpeta completa (.zip)</button></div>
     <div class="hint" id="gen_estado" style="margin-top:10px"></div>
+    <a class="btn grande sec descarga" id="gen_link">⬇️ Si no se descargó solo, toca aquí</a>
+    <div class="err" id="gen_err"></div>
   </div>
   <div class="card">
     <h3 style="margin-top:0">Copia de seguridad</h3>
@@ -221,6 +236,18 @@
     <div id="c_comps"></div>
     <div class="acciones"><button class="btn sec" id="c_add">➕ Agregar competencia</button></div>
   </div>
+  <div class="card">
+    <h3>✨ Inteligencia artificial</h3>
+    <p>Para redactar los textos con IA necesitas una clave. La de <b>Google Gemini es gratis</b>: entra a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con tu cuenta de Google, toca <b>Create API key</b>, cópiala y pégala aquí. La clave se guarda solo en este dispositivo y no se incluye en la copia de seguridad.</p>
+    <label>Proveedor</label>
+    <select id="ia_prov"><option value="gemini">Google Gemini (gratis)</option><option value="claude">Claude (Anthropic, de pago)</option></select>
+    <label>Clave (API key)</label>
+    <input type="password" id="ia_key" placeholder="Pega aquí tu clave" autocomplete="off">
+    <label>Modelo <span class="hint">(déjalo vacío para usar el más reciente automáticamente)</span></label>
+    <input type="text" id="ia_model" placeholder="automático">
+    <div class="acciones"><button class="btn sec" id="ia_guardar">💾 Guardar clave</button><button class="btn sec" id="ia_probar">🧪 Probar</button></div>
+    <div class="hint" id="ia_estado" style="margin-top:8px"></div>
+  </div>
   <button class="btn grande" id="c_guardar">💾 Guardar configuración</button>
   <div class="card" style="margin-top:14px">
     <h3 style="margin-top:0">Empezar un año nuevo</h3>
@@ -245,7 +272,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Expo Aula: tecnología e informática y lectura crítica",
   "contribucion": "Diseñar la Expo Aula como herramienta que despierte el interés colectivo de los estudiantes en tecnología e informática, mostrando dentro del salón prototipos, videos y trabajos de lectura crítica elaborados durante el año.",
-  "criterio": "Trabajos elaborados, mejorados y expuestos en el salón de clase con participación estudiantil activa en los 3 seguimientos."
+  "criterio": "Trabajos elaborados, mejorados y expuestos en el salón de clase con participación estudiantil activa en los 3 seguimientos.",
+  "s1": "Informe escrito y fotográfico de los primeros trabajos elaborados en clase: prototipos, guiones y textos de lectura crítica en borrador.",
+  "s2": "Informe escrito y registro fotográfico de los trabajos mejorados tras retroalimentación, con ajustes y avances visibles en cada producto.",
+  "s3": "Informe escrito y registro fotográfico de la Expo Aula realizada en el salón de clase, donde los estudiantes exponen sus trabajos finales de tecnología e informática y lectura crítica ante sus compañeros y docentes."
  },
  {
   "id": "c2",
@@ -256,7 +286,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Plataforma educativa en Google Sites",
   "contribucion": "Crear una plataforma educativa en Google Sites con los estudiantes, que integre videos explicativos, guías descargables, quizzes, glosario tecnológico y proyectos estudiantiles de tecnología e informática y lectura crítica, para consultar y practicar de forma autónoma.",
-  "criterio": "Plataforma educativa activa y en constante mejora, con contenidos accesibles para todos los estudiantes, enriquecida en cada seguimiento."
+  "criterio": "Plataforma educativa activa y en constante mejora, con contenidos accesibles para todos los estudiantes, enriquecida en cada seguimiento.",
+  "s1": "(Informe documental del proceso de inicio de la plataforma) Diseño y publicación inicial de la plataforma en Google Sites con secciones de videos explicativos, guías descargables y glosario tecnológico. Captura de pantalla de la estructura creada con participación estudiantil.",
+  "s2": "(Informe documental del proceso de la actualización de la plataforma) Incorporación de quizzes interactivos mediante Google Forms y publicación de los primeros proyectos de los estudiantes. Registro fotográfico y capturas de los nuevos contenidos añadidos.",
+  "s3": "(Informe documental del proceso de la plataforma finalizada) Plataforma completa con todos los contenidos de tecnología e informática y lectura crítica. Registro de uso activo por parte de los estudiantes, evidenciando consulta, práctica autónoma y trabajos expuestos en la Expo Aula."
  },
  {
   "id": "c3",
@@ -267,7 +300,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Casa inteligente IoT a escala 1:10",
   "contribucion": "Diseñar una casa a escala 1:10 inteligente con tecnología IoT que integre sensores, programación y automatización del hogar, desarrollando en los estudiantes habilidades tecnológicas y comprensión del impacto de los sistemas conectados en la vida cotidiana.",
-  "criterio": "Proyecto funcional evaluado en creatividad del diseño, uso adecuado de sensores, calidad de la programación y reflexión sobre el impacto tecnológico, con avances en los 3 seguimientos."
+  "criterio": "Proyecto funcional evaluado en creatividad del diseño, uso adecuado de sensores, calidad de la programación y reflexión sobre el impacto tecnológico, con avances en los 3 seguimientos.",
+  "s1": "Informe escrito y fotográfico del diseño inicial de la casa inteligente: esquema de conexiones IoT, selección de sensores y dispositivos, borrador del código de automatización y primeras pruebas de simulación.",
+  "s2": "Informe escrito y registro fotográfico del prototipo en construcción tras retroalimentación, con ajustes visibles en las conexiones, mejoras en la programación y avances en la automatización funcional del sistema.",
+  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento, donde los estudiantes demuestran la automatización activa del hogar, sustentan su impacto tecnológico en la vida cotidiana y presentan conclusiones del proceso de aprendizaje."
  },
  {
   "id": "c4",
@@ -278,7 +314,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Evaluaciones digitales: Google Forms, Quizizz, Kahoot y Wordwall",
   "contribucion": "Evaluar los periodos académicos al finalizar cada uno, mediante herramientas digitales gratuitas como Google Forms, Quizizz, Kahoot y Wordwall, acorde con los criterios del SIEE institucional.",
-  "criterio": "Evaluaciones digitales aplicadas al cierre de cada periodo, valoradas según apropiación de conocimientos, resolución de problemas y participación, bajo los criterios del SIEE."
+  "criterio": "Evaluaciones digitales aplicadas al cierre de cada periodo, valoradas según apropiación de conocimientos, resolución de problemas y participación, bajo los criterios del SIEE.",
+  "s1": "Diseño y aplicación de la evaluación digital del primer periodo mediante Google Forms, con preguntas de selección múltiple y respuesta abierta sobre los temas trabajados. Informe de resultados con análisis del desempeño estudiantil según criterios del SIEE.",
+  "s2": "Aplicación de la evaluación interactiva del segundo periodo mediante Quizizz, aprovechando sus reportes automáticos de desempeño por estudiante. Informe comparativo de avances respecto al periodo anterior, con registro de pantalla de los resultados obtenidos.",
+  "s3": "Aplicación de la evaluación del tercer y cuarto periodo mediante Kahoot y Wordwall, evidenciando participación activa y apropiación final de los contenidos. Informe escrito con análisis global del desempeño en los cuatro periodos, producciones académicas finales y registro fotográfico de las actividades evaluativas. Administrativa Uso de recursos Diseñar e implementar un prototipo de sistema de riego automatizado con Arduino, sensores de humedad, pH, temperatura y nutrientes NPK, que optimice el uso del agua y los recursos del suelo, orientando el proyecto al cuidado ambiental en el marco del PRAES institucional. Evalúa la funcionalidad del prototipo, la integración adecuada de sensores y actuadores, la creatividad en el diseño del sistema, el uso eficiente de los recursos hídricos y la comprensión del impacto ambiental del proyecto en el contexto del PRAES. Registro fotográfico y documental del proceso de construcción del prototipo de riego automatizado, con evidencia de participación estudiantil activa en cada seguimiento."
  },
  {
   "id": "c5",
@@ -289,7 +328,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Prototipo de sistema de riego automatizado con Arduino (PRAES)",
   "contribucion": "Diseñar e implementar un prototipo de sistema de riego automatizado con Arduino y sensores que optimice el uso del agua y los recursos del suelo, orientado al cuidado ambiental en el marco del PRAES institucional.",
-  "criterio": "Funcionalidad del prototipo, integración de sensores y actuadores, creatividad del diseño, uso eficiente del agua y comprensión del impacto ambiental."
+  "criterio": "Funcionalidad del prototipo, integración de sensores y actuadores, creatividad del diseño, uso eficiente del agua y comprensión del impacto ambiental.",
+  "s1": "Informe escrito y fotográfico del diseño inicial del sistema de riego automatizado: esquema de conexiones del Arduino Mega, selección de sensores (humedad capacitiva x4, pH analógico, DS18B20, NPK RS485), borrador del código y primeras pruebas de simulación. Reflexión sobre el impacto ambiental en el marco del PRAES.",
+  "s2": "Informe escrito y registro fotográfico del prototipo en construcción, con avances visibles en la integración de actuadores (bombas solenoide, aspersores), módulo WiFi ESP8266 para alertas y módulo RTC para riego por horario. Ajustes en la programación y evidencia del trabajo colaborativo.",
+  "s3": "Informe escrito y registro fotográfico del prototipo terminado y en funcionamiento: riego automatizado activo, monitoreo en pantalla LCD en tiempo real y conexión a app móvil. Sustentación del impacto ambiental y conclusiones en el marco del PRAES institucional."
  },
  {
   "id": "c6",
@@ -300,7 +342,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Registro digital de seguimiento académico por periodo",
   "contribucion": "Hacer seguimiento continuo al avance académico y formativo de los estudiantes mediante el registro sistemático de actividades, asistencia, desempeños y compromisos, utilizando herramientas digitales.",
-  "criterio": "Consistencia y oportunidad del registro, claridad de los reportes y uso de herramientas digitales conforme al SIEE."
+  "criterio": "Consistencia y oportunidad del registro, claridad de los reportes y uso de herramientas digitales conforme al SIEE.",
+  "s1": "Informe escrito con registro del seguimiento del primer periodo: asistencia, desempeños observados, compromisos adquiridos y avances académicos individuales. Captura de pantalla de las herramientas digitales utilizadas para el registro.",
+  "s2": "Informe escrito con registro del seguimiento del segundo periodo, evidenciando comparativo de avances respecto al periodo anterior. Reporte digital de estudiantes con dificultades y estrategias de mejora implementadas.",
+  "s3": "Informe escrito consolidado del seguimiento de los cuatro periodos académicos, evidenciando evolución del desempeño estudiantil, cumplimiento de compromisos y efectividad de las estrategias de acompañamiento implementadas durante el año escolar. Comunitaria Comunicación institucional Usar las redes sociales institucionales como canal de comunicación asertiva con la comunidad educativa, publicando información relevante sobre entrega de informes académicos, reuniones, comunicados generales y demás actividades estipuladas en el POA institucional. Valora la gestión y mantenimiento activo de las redes sociales institucionales como espacio de comunicación oportuna, clara y responsable con la comunidad educativa, midiendo la pertinencia del contenido publicado y la frecuencia de divulgación en cada seguimiento. Informe escrito y capturas de pantalla de publicaciones realizadas en redes sociales institucionales y registro de las actividades comunicadas a la comunidad educativa en cada periodo."
  },
  {
   "id": "c7",
@@ -311,7 +356,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Redes sociales institucionales y reuniones con padres",
   "contribucion": "Usar las redes sociales institucionales como canal de comunicación asertiva con la comunidad educativa, publicando información sobre entrega de informes, reuniones, comunicados y actividades del POA institucional.",
-  "criterio": "Gestión y mantenimiento activo de las redes, pertinencia del contenido y frecuencia de divulgación en cada seguimiento."
+  "criterio": "Gestión y mantenimiento activo de las redes, pertinencia del contenido y frecuencia de divulgación en cada seguimiento.",
+  "s1": "Informe escrito y registro de publicaciones en redes sociales institucionales correspondientes al primer periodo: entrega de informes académicos, convocatoria a reuniones de padres y comunicados generales del POA. Capturas de pantalla con fecha y descripción del contenido publicado.",
+  "s2": "Informe escrito y registro de publicaciones del segundo periodo con avances en la estrategia comunicativa: boletines digitales, recordatorios institucionales y difusión de actividades académicas y culturales. Evidencia del alcance e interacción de la comunidad con las publicaciones.",
+  "s3": "Informe escrito y registro consolidado de publicaciones del tercer y cuarto periodo, evidenciando continuidad, variedad de contenidos y uso responsable de las TIC. Informe final con análisis del impacto comunicativo en la comunidad educativa durante el año escolar."
  },
  {
   "id": "c8",
@@ -322,7 +370,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Funcional",
   "evidencia": "Señalización vial interior y exterior (proyecto vial)",
   "contribucion": "Señalizar los espacios comunes internos y externos de la institución, instalando avisos viales exteriores (velocidad y horario de paso de estudiantes) y demarcando carriles peatonales internos, desde el proyecto vial.",
-  "criterio": "Pertinencia, calidad y visibilidad de las señales, participación estudiantil e impacto en la seguridad y la convivencia."
+  "criterio": "Pertinencia, calidad y visibilidad de las señales, participación estudiantil e impacto en la seguridad y la convivencia.",
+  "s1": "Informe escrito y fotográfico del diagnóstico y diseño inicial de la señalización: identificación de espacios a intervenir, bocetos de señales exteriores (velocidad, horario de paso de estudiantes, identificación de la institución) e interiores (carriles peatonales). Evidencia de la participación estudiantil en el diseño.",
+  "s2": "Informe escrito y registro fotográfico del proceso de elaboración e instalación de señales exteriores, indicando reducción de velocidad, horario de paso de estudiantes y presencia de institución educativa. Avances visibles en la demarcación interior de carriles peatonales.",
+  "s3": "Informe escrito y registro fotográfico de la señalización completa instalada: exterior con avisos viales e interior con carriles demarcados. Sustentación del impacto en la seguridad, convivencia y cultura vial de la comunidad educativa. Fotos del proceso y producto final. Competencias comportamentales Competencia Criterios de evaluación Evidencias Descriptor de la evidencia INICIATIVA: 10% Crear timbre escolar automático para el aviso de receso escolar. Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas."
  },
  {
   "id": "c9",
@@ -333,7 +384,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Comportamental",
   "evidencia": "Timbre escolar automático",
   "contribucion": "Crear un timbre escolar automático para el aviso de receso escolar.",
-  "criterio": "Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas."
+  "criterio": "Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas.",
+  "s1": "Informe escrito y registro fotográfico del proceso de implementación inicial del timbre escolar automático: ensamblaje básico del sistema, pruebas de activación para el aviso de receso escolar y evidencias de funcionamiento preliminar.",
+  "s2": "Informe escrito y registro fotográfico de la actualización del sistema: incorporación de componentes como relé de 2 vías y módulo RTC con pines, ajustes en la programación para mejorar la precisión de los horarios y evidencias de pruebas de funcionamiento optimizado.",
+  "s3": "Informe escrito y registro fotográfico del sistema completo: acoplamiento de pantalla para visualización de horarios, configuración inalámbrica del timbre escolar y evaluación del impacto en la organización institucional. Evidencias del producto final en funcionamiento y su efectividad en el entorno escolar."
  },
  {
   "id": "c10",
@@ -344,7 +398,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Comportamental",
   "evidencia": "AgroSmart ESP32: riego inteligente autónomo para la granja escolar (PRAE)",
   "contribucion": "Crear estrategias para fortalecer el trabajo de la comunidad y su apoyo en las actividades del PRAE mediante el diseño e implementación del sistema AgroSmart ESP32 para la granja escolar.",
-  "criterio": "Sistema AgroSmart ESP32 funcional: riego automático basado en sensores de humedad, con control autónomo y monitoreo inalámbrico."
+  "criterio": "Sistema AgroSmart ESP32 funcional: riego automático basado en sensores de humedad, con control autónomo y monitoreo inalámbrico.",
+  "s1": "Informe escrito y registro fotográfico del diseño y prototipo inicial del sistema AgroSmart ESP32: identificación de necesidades de riego en la granja, diseño del sistema, esquemas de conexión (ESP32 + sensor de humedad), desarrollo del prototipo y pruebas iniciales de activación automática.",
+  "s2": "Informe escrito y registro fotográfico de la implementación del sistema AgroSmart ESP32: instalación en la granja escolar, integración de componentes (relé, bomba o electroválvula), funcionamiento autónomo según condiciones del suelo y participación de estudiantes y comunidad en el montaje.",
+  "s3": "Informe escrito y registro fotográfico del sistema AgroSmart ESP32 optimizado: mejoras en la precisión del riego, incorporación de monitoreo inalámbrico (WiFi), evaluación del ahorro de agua y del impacto en el PRAE, evidencias del sistema funcionando de manera estable y sostenible."
  },
  {
   "id": "c11",
@@ -355,7 +412,10 @@ const COMPETENCIAS_POR_DEFECTO = [
   "tipo": "Comportamental",
   "evidencia": "Revisión y mantenimiento de equipos de cómputo (sede central y sedes anexas)",
   "contribucion": "Realizar la revisión y el mantenimiento de los computadores de la institución, en la sede central y las sedes anexas, según las necesidades identificadas.",
-  "criterio": "Informe técnico del diagnóstico, mantenimiento preventivo y seguimiento periódico, con registro fotográfico de las intervenciones."
+  "criterio": "Informe técnico del diagnóstico, mantenimiento preventivo y seguimiento periódico, con registro fotográfico de las intervenciones.",
+  "s1": "Informe escrito del diagnóstico inicial: elaboración de documento solicitando información sobre las sedes que requieren revisión de equipos, identificación de necesidades, levantamiento de inventario básico de computadores y registro fotográfico del estado inicial de los equipos.",
+  "s2": "Informe escrito y registro fotográfico del mantenimiento preventivo: limpieza interna y externa de los equipos, revisión de componentes, optimización del sistema operativo y software, evidencias del trabajo realizado en la sede central y sedes que lo requieran.",
+  "s3": "Informe escrito y registro fotográfico del mantenimiento preventivo periódico (cada 3 meses): seguimiento al estado de los equipos intervenidos, nuevas jornadas de mantenimiento, verificación del rendimiento y funcionalidad, evidencias del impacto en la mejora del servicio tecnológico institucional."
  }
 ];
 const CONFIG_POR_DEFECTO = {
@@ -399,7 +459,7 @@ function irA(tab) {
   document.querySelectorAll("section").forEach(x => x.classList.toggle("on", x.id === tab));
   if (tab === "estado") pintarEstado();
   if (tab === "generar") pintarFaltantes();
-  if (tab === "config") pintarConfig();
+  if (tab === "config") { pintarConfig(); pintarIA(); }
   window.scrollTo(0, 0);
 }
 
@@ -528,11 +588,11 @@ function pintarLista() {
 
 // =================================================================== CONFIGURACIÓN
 const CAMPOS = ["anio", "ciudad", "inst", "dane", "doc", "cc", "areaens", "sec", "eva", "evacc", "evacargo", "s1", "s2", "s3"];
-const CAMPOS_COMP = [["competencia", "Competencia"], ["tipo", "Tipo (Funcional o Comportamental)"], ["area", "Área de gestión (Académica, Administrativa, Comunitaria o Comportamental)"], ["evidencia", "Nombre de la evidencia"], ["contribucion", "Contribución individual"], ["criterio", "Criterio de evaluación"], ["carpeta", "Nombre de la carpeta"], ["archivo", "Nombre del archivo Word"]];
+const CAMPOS_COMP = [["competencia", "Competencia"], ["tipo", "Tipo (Funcional o Comportamental)"], ["area", "Área de gestión (Académica, Administrativa, Comunitaria o Comportamental)"], ["evidencia", "Nombre de la evidencia"], ["contribucion", "Contribución individual"], ["criterio", "Criterio de evaluación"], ["s1", "Qué pide el S1 (descriptor del Anexo 5)"], ["s2", "Qué pide el S2"], ["s3", "Qué pide el S3"], ["carpeta", "Nombre de la carpeta"], ["archivo", "Nombre del archivo Word"]];
 function pintarConfig() {
   CAMPOS.forEach(k => $("c_" + k).value = CFG[k] || "");
   $("c_comps").innerHTML = CFG.comps.map((c, i) => `<details class="comp-edit" data-i="${i}"><summary>${i + 1}. ${esc(c.competencia)}</summary>
-    ${CAMPOS_COMP.map(([k, n]) => `<label>${n}</label>${k === "contribucion" || k === "criterio" ? `<textarea data-k="${k}" rows="3">${esc(c[k])}</textarea>` : `<input type="text" data-k="${k}" value="${esc(c[k])}">`}`).join("")}
+    ${CAMPOS_COMP.map(([k, n]) => `<label>${n}</label>${["contribucion", "criterio", "s1", "s2", "s3"].includes(k) ? `<textarea data-k="${k}" rows="3">${esc(c[k])}</textarea>` : `<input type="text" data-k="${k}" value="${esc(c[k])}">`}`).join("")}
     <div class="acciones"><button class="btn peligro" data-quitar="${i}">Quitar esta competencia</button></div></details>`).join("");
   $("c_comps").querySelectorAll("[data-quitar]").forEach(b => b.onclick = () => {
     const c = CFG.comps[+b.dataset.quitar];
@@ -583,12 +643,18 @@ function pintarFaltantes() {
 
 $("btn_generar").onclick = async () => {
   const b = $("btn_generar"); b.disabled = true; $("gen_estado").textContent = "Generando documentos… (puede tardar un poco si hay muchas fotos)";
-  try { await generarZip(); $("gen_estado").textContent = "✅ Listo. Revisa tus descargas."; }
-  catch (er) { console.error(er); $("gen_estado").textContent = "Error: " + er.message; }
+  $("gen_link").style.display = "none"; $("gen_err").style.display = "none"; ERRORES_GEN = [];
+  try {
+    await generarZip();
+    $("gen_estado").textContent = "✅ Listo. Revisa tus descargas.";
+    if (ERRORES_GEN.length) { $("gen_err").style.display = "block"; $("gen_err").textContent = "Se generó, pero con estos avisos:\n" + ERRORES_GEN.join("\n"); }
+  } catch (er) { console.error(er); $("gen_estado").textContent = ""; $("gen_err").style.display = "block"; $("gen_err").textContent = "No se pudo generar: " + (er && er.message || er) + "\nToma una captura de este mensaje para revisarlo."; }
   b.disabled = false;
 };
 
+let ERRORES_GEN = [];
 async function generarZip() {
+  if (!window.docx || !window.JSZip) throw new Error("No cargaron las librerías (carpeta lib). Revisa que en GitHub estén lib/docx.js y lib/jszip.min.js y recarga la página.");
   const D = window.docx;
   const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType, HeadingLevel, Header, Footer, PageNumber, BorderStyle, LevelFormat, PageBreak, VerticalAlign, TableLayoutType, HeightRule, TabStopType, ImageRun, PageOrientation } = D;
   const FONT = "Arial", AZUL = "1F4E79", AZUL_CLARO = "DCE6F1";
@@ -649,8 +715,9 @@ async function generarZip() {
       const par = fotos.slice(i, i + 2), celdas = [];
       for (const f of par) {
         contador.n++;
+        let img; try { img = await fotoRun(f); } catch (er) { ERRORES_GEN.push("Una foto no se pudo insertar: " + er.message); img = run("[foto no disponible]", { size: 18, hl: true }); }
         celdas.push(cell([
-          new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [await fotoRun(f)] }),
+          new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [img] }),
           new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 0 }, children: [run(`Fotografía ${contador.n}: `, { size: 18, bold: true }), run(f.caption || "", { size: 18 })] })
         ], cw, { valign: VerticalAlign.BOTTOM }));
       }
@@ -749,8 +816,122 @@ async function generarZip() {
 
   $("gen_estado").textContent = "Comprimiendo…";
   const blob = await zip.generateAsync({ type: "blob" });
-  descargar(blob, limpio(`EVIDENCIAS ${CFG.anio} ${CFG.doc}`) + ".zip");
+  const nombre = limpio(`EVIDENCIAS ${CFG.anio} ${CFG.doc}`) + ".zip";
+  const L = $("gen_link"); if (L.href && L.href.startsWith("blob:")) URL.revokeObjectURL(L.href);
+  L.href = URL.createObjectURL(blob); L.download = nombre; L.style.display = "flex";
+  try { const a = document.createElement("a"); a.href = L.href; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); } catch (e) {}
 }
+
+// =================================================================== IA
+const IA = {
+  cfg() { try { return JSON.parse(localStorage.getItem("ia_cfg") || "{}"); } catch (e) { return {}; } },
+  save(c) { try { localStorage.setItem("ia_cfg", JSON.stringify(c)); } catch (e) {} },
+};
+function pintarIA() { const c = IA.cfg(); $("ia_prov").value = c.prov || "gemini"; $("ia_key").value = c.key || ""; $("ia_model").value = c.model || ""; }
+function leerIA() { const c = IA.cfg(); const n = { prov: $("ia_prov").value, key: $("ia_key").value.trim(), model: $("ia_model").value.trim() }; if (n.prov !== c.prov || n.model !== c.model) n.auto = ""; else n.auto = c.auto || ""; IA.save(n); return n; }
+$("ia_guardar").onclick = () => { leerIA(); toast("✅ Clave guardada en este dispositivo"); };
+$("ia_probar").onclick = async () => {
+  leerIA(); $("ia_estado").innerHTML = '<span class="gira">⏳</span> Probando…';
+  try { const r = await llamarIA("Responde solo con este JSON: {\"ok\": true}", []); $("ia_estado").textContent = "✅ Funciona" + (r.modelo ? " (modelo: " + r.modelo + ")" : ""); }
+  catch (er) { $("ia_estado").textContent = "❌ " + er.message; }
+};
+
+async function fotoA64(blob, max = 1024) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
+    let w = img.naturalWidth, h = img.naturalHeight; if (Math.max(w, h) > max) { const k = max / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h; cv.getContext("2d").drawImage(img, 0, 0, w, h);
+    return cv.toDataURL("image/jpeg", 0.8).split(",")[1];
+  } finally { URL.revokeObjectURL(url); }
+}
+async function modeloGemini(key) {
+  const c = IA.cfg(); if (c.model) return c.model; if (c.auto) return c.auto;
+  let elegido = "gemini-flash-latest";
+  try {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000", { headers: { "x-goog-api-key": key } });
+    if (r.ok) {
+      const d = await r.json();
+      const cands = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent")).map(m => m.name.replace("models/", ""))
+        .map(n => { const x = n.match(/^gemini-(\d+(?:\.\d+)?)-flash$/); return x ? { n, v: parseFloat(x[1]) } : null; }).filter(Boolean).sort((a, b) => b.v - a.v);
+      if (cands.length) elegido = cands[0].n;
+    } else if (r.status === 400 || r.status === 403) { const t = await r.text(); throw new Error("La clave no es válida o no tiene permiso. " + t.slice(0, 160)); }
+  } catch (er) { if (/clave/.test(er.message)) throw er; }
+  IA.save({ ...IA.cfg(), auto: elegido }); return elegido;
+}
+async function llamarIA(prompt, imagenes) {
+  const c = IA.cfg();
+  if (!c.key) throw new Error("Falta la clave de IA. Ve a ⚙️ Configuración → Inteligencia artificial.");
+  if (c.prov === "claude") {
+    const modelo = c.model || "claude-sonnet-5-5";
+    const content = [...imagenes.map(d => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: d } })), { type: "text", text: prompt }];
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": c.key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: modelo, max_tokens: 2000, messages: [{ role: "user", content }] }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error("Claude respondió con error " + r.status + ": " + ((d.error && d.error.message) || ""));
+    return { texto: (d.content || []).filter(x => x.type === "text").map(x => x.text).join(""), modelo };
+  }
+  const modelo = await modeloGemini(c.key);
+  const parts = [{ text: prompt }, ...imagenes.map(d => ({ inline_data: { mime_type: "image/jpeg", data: d } }))];
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": c.key },
+    body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.4, responseMimeType: "application/json" } }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 404 && !c.model) IA.save({ ...IA.cfg(), auto: "" });
+    if (r.status === 429) throw new Error("Se alcanzó el límite gratuito de Gemini por ahora. Espera un minuto e intenta de nuevo.");
+    throw new Error("Gemini respondió con error " + r.status + ": " + ((d.error && d.error.message) || ""));
+  }
+  const cand = (d.candidates || [])[0];
+  return { texto: cand && cand.content ? (cand.content.parts || []).map(p => p.text || "").join("") : "", modelo };
+}
+function extraerJSON(t) { t = (t || "").replace(/```json|```/g, "").trim(); const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < 0) throw new Error("La IA no devolvió un formato válido. Intenta de nuevo."); return JSON.parse(t.slice(a, b + 1)); }
+
+$("f_ia").onclick = async () => {
+  const btn = $("f_ia"), err = $("f_ia_err"); err.style.display = "none";
+  const c = compById($("f_comp").value), seg = +document.querySelector("input[name=f_seg]:checked").value;
+  const notas = $("f_desc").value.trim(), tit = $("f_titulo").value.trim();
+  if (!notas && !tit && !FOTOS_FORM.length) { err.style.display = "block"; err.textContent = "Agrega al menos fotos o unas notas cortas de lo que se hizo."; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…';
+  try {
+    const fotos = FOTOS_FORM.slice(0, 8);
+    const imgs = []; for (const f of fotos) imgs.push(await fotoA64(f.blob));
+    const prompt = `Eres un asistente que ayuda a un docente colombiano a redactar evidencias para la Evaluación Anual de Desempeño Laboral (Decreto Ley 1278 de 2002).
+
+DATOS DE LA EVIDENCIA
+- Institución: ${CFG.inst}. Área que enseña el docente: ${CFG.areaens}.
+- Competencia: ${c.competencia} (${c.tipo === "Comportamental" ? "competencia comportamental" : "área de gestión " + c.area}).
+- Evidencia concertada: ${c.evidencia}.
+- Contribución individual concertada: ${c.contribucion}
+- Criterio de evaluación: ${c.criterio}
+- Seguimiento: S${seg}. Lo que pide este seguimiento según el Anexo 5: ${c["s" + seg] || "(no especificado)"}
+- Fecha de la actividad: ${fmtFecha($("f_fecha").value) || "(no indicada)"}
+- Título que escribió el docente: ${tit || "(ninguno)"}
+- Notas del docente sobre lo que se hizo: ${notas || "(ninguna; básate en las fotos)"}
+- Se adjuntan ${imgs.length} foto(s) en orden.
+
+INSTRUCCIONES
+1. Redacta en español de Colombia, tono formal e institucional, en tercera persona y en pasado ("los estudiantes elaboraron…", "se realizó…").
+2. Usa SOLO lo que dicen las notas y lo que realmente se ve en las fotos, relacionándolo con la competencia y con lo que pide el seguimiento. No inventes cifras, nombres, grados, lugares, fechas ni resultados que no aparezcan. Si un dato importante falta, escribe un marcador entre corchetes, por ejemplo [número de estudiantes] o [grado].
+3. "descripcion": 2 párrafos de 60 a 120 palabras cada uno, separados por una línea en blanco.
+4. "actividades": de 4 a 6 frases cortas, sin viñetas.
+5. "resultados": 1 o 2 oraciones.
+6. "pies_de_foto": exactamente ${imgs.length} textos cortos (máximo 12 palabras), uno por foto y en el mismo orden, describiendo lo que se ve.
+7. "titulo": máximo 10 palabras.
+
+Responde SOLO con un objeto JSON válido, sin texto adicional, con esta forma:
+{"titulo": "...", "descripcion": "...", "actividades": ["..."], "resultados": "...", "pies_de_foto": ["..."]}`;
+    const r = await llamarIA(prompt, imgs);
+    const j = extraerJSON(r.texto);
+    if (j.titulo) $("f_titulo").value = j.titulo;
+    if (j.descripcion) $("f_desc").value = j.descripcion;
+    if (Array.isArray(j.actividades)) $("f_acts").value = j.actividades.join("\n");
+    if (j.resultados) $("f_res").value = j.resultados;
+    if (Array.isArray(j.pies_de_foto)) j.pies_de_foto.forEach((p, i) => { if (fotos[i] && !fotos[i].caption) fotos[i].caption = p; });
+    pintarFotosForm();
+    toast("✨ Texto listo. Revísalo, completa lo que está entre [corchetes] y guarda.", 4500);
+  } catch (er) { err.style.display = "block"; err.textContent = er.message; }
+  btn.disabled = false; btn.textContent = "✨ Redactar con IA";
+};
 
 // =================================================================== MODO NOCHE
 function pintarBotonTema() { const d = document.documentElement.dataset.theme === "dark"; $("tema").textContent = d ? "☀️" : "🌙"; document.querySelector('meta[name=theme-color]').content = d ? "#0F172A" : "#1E3A8A"; }
@@ -762,6 +943,7 @@ pintarBotonTema();
   try { await DB.open(); } catch { alert("Este navegador no permite guardar datos. Prueba con Chrome."); return; }
   CFG = await DB.get("config");
   if (!CFG) { CFG = JSON.parse(JSON.stringify(CONFIG_POR_DEFECTO)); await DB.set("config", CFG); }
+  CFG.comps.forEach(c => { const d = COMPETENCIAS_POR_DEFECTO.find(x => x.id === c.id && x.competencia === c.competencia); if (d) ["s1", "s2", "s3"].forEach(k => { if (!c[k]) c[k] = d[k]; }); });
   ENTRADAS = await DB.all();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   llenarSelectComp(); pintarSub(); limpiarForm();

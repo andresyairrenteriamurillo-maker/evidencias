@@ -245,7 +245,12 @@
     <div class="row"><div><select id="p_nueva"></select></div><div style="flex:0 0 auto"><button class="btn sec" id="c_add">➕ Agregar</button></div></div>
   </div>
   <button class="btn grande" id="p_guardar">💾 Guardar planeación</button>
-  <div class="acciones" style="margin-top:12px"><button class="btn sec grande" id="p_anexo5">📄 Descargar Anexo 5 (Word)</button></div>
+  <div class="card" style="margin-top:16px">
+    <h3>📄 Anexos para firmar</h3>
+    <p>Genera los dos documentos de la concertación con lo que planeaste: el <b>Anexo 5</b> (competencias, contribuciones, criterios y evidencias) y el <b>Anexo 2</b> (tabla resumen de evidencias, con un folio por cada seguimiento).</p>
+    <button class="btn grande" id="p_ambos">📦 Descargar Anexo 5 y Anexo 2</button>
+    <div class="acciones"><button class="btn sec" id="p_anexo5" style="flex:1">📄 Solo Anexo 5</button><button class="btn sec" id="p_anexo2" style="flex:1">📄 Solo Anexo 2</button></div>
+  </div>
   <div class="card" style="margin-top:16px">
     <h3>🔄 Empezar un año nuevo</h3>
     <p>Pasa al año siguiente: borra las evidencias registradas (descarga antes la copia de seguridad) y te deja planear las nuevas competencias.</p>
@@ -819,6 +824,53 @@ async function anexo5Blob() {
     P("NOTA: El docente o directivo docente evaluado debe conservar una copia firmada de este Anexo.", { size: 16, align: AlignmentType.LEFT, after: 0 })] }] });
   return Packer.toBlob(doc);
 }
+// ---- Anexo 2 en Word. final=false: planeación (descriptores); final=true: incluye lo registrado
+async function anexo2Blob(final) {
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType, BorderStyle, VerticalAlign, TableLayoutType, PageOrientation } = window.docx;
+  const F = "Arial", AZ = "1F4E79", AC = "DCE6F1";
+  const r = (t, o = {}) => new TextRun({ text: t, font: F, size: o.size || 18, bold: o.bold, color: o.color, highlight: o.hl ? "yellow" : undefined });
+  const bd = { style: BorderStyle.SINGLE, size: 4, color: "808080" }, B = { top: bd, bottom: bd, left: bd, right: bd };
+  const cel = (t, w, o = {}) => new TableCell({ width: { size: w, type: WidthType.DXA }, borders: B, columnSpan: o.span,
+    shading: o.fill ? { fill: o.fill, type: ShadingType.CLEAR, color: "auto" } : undefined, margins: { top: 60, bottom: 60, left: 90, right: 90 }, verticalAlign: VerticalAlign.CENTER,
+    children: [new Paragraph({ alignment: o.align || AlignmentType.LEFT, spacing: { after: 0 }, children: [r(String(t), o)] })] });
+  const tbl = (ws, rows) => new Table({ width: { size: ws.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: ws, layout: TableLayoutType.FIXED, rows });
+  const ws = [800, 1500, 1200, 5260, 2600, 1600], C = AlignmentType.CENTER;
+  const filas = [new TableRow({ tableHeader: true, children: ["No. Folio", "Fecha incorporación de la evidencia (dd/mm/aaaa)", "Tipo de evidencia (D: Documental; T: Testimonial)", "Nombre de la evidencia (plan de trabajo, informe, material pedagógico, proyecto, certificación, encuesta, etc.)", "Competencias que soporta", "Firma (de quien consigna y valora la evidencia)"].map((h, i) => cel(h, ws[i], { bold: true, fill: AC, align: C, size: 16 })) })];
+  let folio = 0;
+  const comps = [...CFG.comps].sort((a, b) => ordenCat(a) - ordenCat(b));
+  comps.forEach(c => { for (let s = 1; s <= 3; s++) {
+    folio++;
+    const es = final ? ENTRADAS.filter(e => e.comp === c.id && e.seg === s) : [];
+    const fecha = fmtFecha(CFG["s" + s]) || (es[0] ? fmtFecha(es[0].fecha) : "");
+    let nombre = `${c.evidencia ? c.evidencia + " — " : ""}S${s}: ${c["s" + s] || "Informe escrito y registro fotográfico."}`;
+    if (final && es.length) nombre += " Registros: " + es.map(e => e.titulo || "actividad").join("; ") + ".";
+    filas.push(new TableRow({ cantSplit: true, children: [cel(folio, ws[0], { align: C }), cel(fecha || "__/__/" + CFG.anio, ws[1], { align: C, hl: !fecha }), cel("D", ws[2], { align: C }), cel(nombre, ws[3], { size: 16, hl: final && !es.length }), cel(c.competencia, ws[4], { fill: "E2EFD9", align: C }), cel("", ws[5])] }));
+  } });
+  const enc = tbl([4320, 4320, 4320], [
+    new TableRow({ children: [cel("Establecimiento educativo: " + CFG.inst, 8640, { span: 2, bold: true }), cel("Código DANE: " + CFG.dane, 4320, { bold: true })] }),
+    new TableRow({ children: [cel("Nombre del evaluado: " + CFG.doc, 8640, { span: 2, bold: true }), cel("CC " + CFG.cc, 4320, { bold: true })] }),
+    new TableRow({ children: [cel("Nombre del evaluador: " + CFG.eva, 8640, { span: 2, bold: true }), cel("CC " + (CFG.evacc || "__________"), 4320, { bold: true })] })]);
+  const P = (t, o = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: o.after ?? 60 }, children: [r(t, o)] });
+  const doc = new Document({ sections: [{ properties: { page: { size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE }, margin: { top: 900, bottom: 900, left: 900, right: 900 } } }, children: [
+    P("EVALUACIÓN ANUAL DE DESEMPEÑO LABORAL — DOCENTES Y DIRECTIVOS DOCENTES DECRETO LEY 1278 DE 2002", { size: 16, color: "595959" }),
+    P("ANEXO 2. TABLA RESUMEN DE EVIDENCIAS", { size: 26, bold: true, color: AZ }),
+    P("Año " + CFG.anio, { size: 20, bold: true, after: 200 }),
+    enc, new Paragraph({ children: [] }), tbl(ws, filas)] }] });
+  return Packer.toBlob(doc);
+}
+$("p_anexo2").onclick = async () => {
+  leerConfigForm();
+  try { descargar(await anexo2Blob(false), `ANEXO 2 ${CFG.anio} ${carpetaDe(CFG.doc)}.docx`); toast("📄 Anexo 2 descargado"); }
+  catch (er) { toast("No se pudo generar el Anexo 2: " + er.message, 5000); }
+};
+$("p_ambos").onclick = async () => {
+  leerConfigForm();
+  try {
+    const z = new JSZip(), n = carpetaDe(CFG.doc);
+    z.file(`ANEXO 5 ${CFG.anio} ${n}.docx`, await anexo5Blob()); z.file(`ANEXO 2 ${CFG.anio} ${n}.docx`, await anexo2Blob(false));
+    descargar(await z.generateAsync({ type: "blob" }), `ANEXOS 5 Y 2 ${CFG.anio} ${n}.zip`); toast("📦 Anexos descargados");
+  } catch (er) { toast("No se pudieron generar los anexos: " + er.message, 5000); }
+};
 $("p_anexo5").onclick = async () => {
   leerConfigForm();
   try { descargar(await anexo5Blob(), `ANEXO 5 ${CFG.anio} ${carpetaDe(CFG.doc)}.docx`); toast("📄 Anexo 5 descargado"); }
@@ -980,26 +1032,10 @@ async function generarZip() {
     raiz.folder(limpio(c.carpeta)).file(limpio(c.archivo) + ".docx", await Packer.toBlob(mkDoc(ch)));
   }
 
-  // ---- Anexo 2 automático
-  $("gen_estado").textContent = "Generando Anexo 2…";
-  const ws = [700, 1500, 1100, 5560, 2400, 1700];
-  const filas = [new TableRow({ tableHeader: true, children: ["No. Folio", "Fecha incorporación (dd/mm/aaaa)", "Tipo (D/T)", "Nombre de la evidencia", "Competencias que soporta", "Firma"].map((h, i) => cell(h, ws[i], { bold: true, fill: AZUL_CLARO, align: AlignmentType.CENTER, size: 18 })) })];
-  let folio = 0;
-  CFG.comps.forEach(c => { for (let s = 1; s <= 3; s++) {
-    const es = ENTRADAS.filter(e => e.comp === c.id && e.seg === s);
-    folio++;
-    const fecha = segFecha(s) || (es[0] ? fmtFecha(es[0].fecha) : "");
-    const nombre = `${c.evidencia} — S${s}: ` + (es.length ? es.map(e => e.titulo || "actividad").join("; ") + ". Informe escrito y registro fotográfico." : "pendiente");
-    filas.push(new TableRow({ cantSplit: true, children: [cell(String(folio), ws[0], { align: AlignmentType.CENTER, size: 18 }), cell(fecha, ws[1], { align: AlignmentType.CENTER, size: 18 }), cell("D", ws[2], { align: AlignmentType.CENTER, size: 18 }), cell(nombre, ws[3], { size: 18, hl: !es.length }), cell(c.competencia, ws[4], { size: 18, fill: "E2EFD9" }), cell("", ws[5])] }));
-  } });
-  const enc = table([4320, 4320, 4320], [
-    new TableRow({ children: [cell("Establecimiento educativo: " + CFG.inst, 8640, { span: 2, bold: true }), cell("Código DANE: " + CFG.dane, 4320, { bold: true })] }),
-    new TableRow({ children: [cell("Nombre del evaluado: " + CFG.doc, 8640, { span: 2, bold: true }), cell("CC " + CFG.cc, 4320, { bold: true })] }),
-    new TableRow({ children: [cell("Nombre del evaluador: " + CFG.eva, 8640, { span: 2, bold: true }), cell("CC " + (CFG.evacc || "__________"), 4320, { bold: true })] })]);
+  // ---- Anexos 5 y 2
+  $("gen_estado").textContent = "Generando Anexo 5 y Anexo 2…";
   raiz.file("ANEXO 5 RESUMEN DE COMPETENCIAS.docx", await anexo5Blob());
-  raiz.file("ANEXO 2 TABLA RESUMEN DE EVIDENCIAS.docx", await Packer.toBlob(mkDoc([
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [run("ANEXO 2. TABLA RESUMEN DE EVIDENCIAS", { bold: true, size: 26, color: AZUL })] }),
-    enc, new Paragraph({ children: [] }), table(ws, filas)], true)));
+  raiz.file("ANEXO 2 TABLA RESUMEN DE EVIDENCIAS.docx", await anexo2Blob(true));
 
   // ---- Presentación: portada, carta, índice
   $("gen_estado").textContent = "Generando portada…";

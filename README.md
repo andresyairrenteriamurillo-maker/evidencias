@@ -34,7 +34,7 @@ En la pestaña **Planear año** defines con tu evaluador(a) las competencias del
 1. Escribe el año y las fechas de S1, S2 y S3.
 2. Revisa la lista: deben estar las 8 funcionales y 3 comportamentales, y los porcentajes deben sumar 100%. La sección **Revisión** te avisa qué falta.
 3. Abre cada competencia, escribe tu idea en pocas palabras y toca **✨ Sugerir con IA**. Redacta la contribución, el criterio y los descriptores S1, S2 y S3. Ajusta el texto.
-4. Toca **💾 Guardar planeación** y **📄 Descargar Anexo 5 (Word)** para llevarlo a firmar.
+4. Toca **💾 Guardar planeación** y luego **📦 Descargar Anexo 5 y Anexo 2** para llevarlos a firmar.
 5. Para pasar a otro año usa **🔄 Empezar año nuevo** (descarga antes la copia de seguridad).
 
 ## ✨ Redactar con IA

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis Evidencias Docentes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📁</text></svg>">
+<meta name="theme-color" content="#1F4E79">
+<style>
+  :root { --azul:#1F4E79; --azul2:#DCE6F1; --gris:#F4F6F9; --borde:#C9D4E0; --verde:#2E7D32; --naranja:#E08A00; --rojo:#C62828; --texto:#1d2733; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--gris); color: var(--texto); font-size: 16px; }
+  header { background: var(--azul); color:#fff; padding: 14px 16px 0; position: sticky; top:0; z-index: 5; }
+  header h1 { margin: 0 0 2px; font-size: 18px; }
+  header .sub { font-size: 13px; opacity:.85; margin-bottom: 10px; }
+  nav { display:flex; gap:4px; overflow-x:auto; }
+  nav button { flex: 1 0 auto; background: transparent; color:#fff; border:0; padding: 10px 12px; font-size: 14px; border-bottom: 3px solid transparent; cursor:pointer; white-space: nowrap; }
+  nav button.on { border-bottom-color:#fff; font-weight: 700; }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  section { display:none; } section.on { display:block; }
+  .card { background:#fff; border:1px solid var(--borde); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  label { display:block; font-weight:600; font-size: 14px; margin: 12px 0 4px; }
+  .hint { font-weight: 400; color:#5b6b7c; font-size: 13px; }
+  input[type=text], input[type=date], select, textarea { width:100%; padding: 10px; border:1px solid var(--borde); border-radius: 8px; font: inherit; background:#fff; }
+  textarea { min-height: 90px; resize: vertical; }
+  .row { display:flex; gap: 10px; } .row > * { flex:1; }
+  .seg { display:flex; gap:8px; } .seg label { margin:0; flex:1; }
+  .seg input { display:none; }
+  .seg span { display:block; text-align:center; padding: 10px; border:1px solid var(--borde); border-radius:8px; cursor:pointer; font-weight:600; }
+  .seg input:checked + span { background: var(--azul); color:#fff; border-color: var(--azul); }
+  .btn { display:inline-block; background: var(--azul); color:#fff; border:0; border-radius: 8px; padding: 12px 18px; font-size: 15px; font-weight:600; cursor:pointer; }
+  .btn.sec { background:#fff; color: var(--azul); border:1px solid var(--azul); }
+  .btn.peligro { background:#fff; color: var(--rojo); border:1px solid var(--rojo); }
+  .btn.grande { width:100%; padding: 15px; font-size: 16px; }
+  .btn:disabled { opacity:.5; }
+  .fotos { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 10px; margin-top: 10px; }
+  .foto { border:1px solid var(--borde); border-radius: 8px; overflow:hidden; background:#fff; position: relative; }
+  .foto img { width:100%; height: 120px; object-fit: cover; display:block; }
+  .foto input { border:0; border-top:1px solid var(--borde); border-radius:0; font-size: 13px; padding: 8px; }
+  .foto .x { position:absolute; top:4px; right:4px; background: rgba(0,0,0,.6); color:#fff; border:0; border-radius: 50%; width: 28px; height: 28px; cursor:pointer; font-size: 16px; }
+  .addfoto { display:flex; align-items:center; justify-content:center; min-height: 160px; border: 2px dashed var(--borde); border-radius: 8px; color: var(--azul); font-weight:600; cursor:pointer; text-align:center; padding: 10px; }
+  table.estado { width:100%; border-collapse: collapse; font-size: 14px; background:#fff; }
+  table.estado th, table.estado td { border:1px solid var(--borde); padding: 8px 6px; text-align:center; }
+  table.estado th { background: var(--azul2); }
+  table.estado td.nom { text-align:left; }
+  .pill { display:inline-block; min-width: 34px; padding: 3px 8px; border-radius: 12px; font-weight:700; font-size: 13px; cursor:pointer; }
+  .pill.ok { background:#E3F1E4; color: var(--verde); } .pill.no { background:#FDECEA; color: var(--rojo); }
+  .entrada { border:1px solid var(--borde); border-radius: 8px; padding: 12px; margin-top: 10px; background:#fff; }
+  .entrada h4 { margin:0 0 4px; } .entrada .meta { font-size: 13px; color:#5b6b7c; margin-bottom: 6px; }
+  .entrada .mini { display:flex; gap:6px; overflow-x:auto; margin: 8px 0; } .entrada .mini img { height: 60px; border-radius: 4px; }
+  .acciones { display:flex; gap:8px; flex-wrap: wrap; margin-top: 8px; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background:#222; color:#fff; padding: 12px 18px; border-radius: 8px; display:none; z-index: 20; max-width: 90%; }
+  .comp-edit { border:1px solid var(--borde); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .comp-edit summary { cursor:pointer; font-weight:700; }
+  .barra { height: 10px; background: #e4e9ef; border-radius: 6px; overflow:hidden; margin: 6px 0 2px; } .barra > div { height:100%; background: var(--verde); }
+  .aviso { background:#FFF8E1; border:1px solid #F3D27A; border-radius:8px; padding:10px 12px; font-size:14px; }
+  @media (max-width: 520px) { .row { flex-direction: column; gap:0; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>📁 Mis Evidencias Docentes</h1>
+  <div class="sub" id="subtitulo"></div>
+  <nav>
+    <button data-tab="registrar" class="on">➕ Registrar</button>
+    <button data-tab="estado">📊 Mis evidencias</button>
+    <button data-tab="generar">📄 Generar Word</button>
+    <button data-tab="config">⚙️ Configuración</button>
+  </nav>
+</header>
+<main>
+
+<!-- ============ REGISTRAR ============ -->
+<section id="registrar" class="on">
+  <div class="card">
+    <input type="hidden" id="f_id">
+    <label>¿A qué competencia pertenece?</label>
+    <select id="f_comp"></select>
+    <div class="hint" id="f_comp_desc" style="margin-top:6px"></div>
+
+    <label>Seguimiento</label>
+    <div class="seg">
+      <label><input type="radio" name="f_seg" value="1" checked><span>S1</span></label>
+      <label><input type="radio" name="f_seg" value="2"><span>S2</span></label>
+      <label><input type="radio" name="f_seg" value="3"><span>S3</span></label>
+    </div>
+
+    <div class="row">
+      <div><label>Fecha de la actividad</label><input type="date" id="f_fecha"></div>
+      <div><label>Título corto <span class="hint">(ej.: Construcción de la maqueta)</span></label><input type="text" id="f_titulo"></div>
+    </div>
+
+    <label>¿Qué se hizo? <span class="hint">Cuéntalo con tus palabras. Deja una línea en blanco para separar párrafos.</span></label>
+    <textarea id="f_desc" rows="5"></textarea>
+
+    <label>Actividades realizadas <span class="hint">(una por línea, opcional)</span></label>
+    <textarea id="f_acts" rows="4" placeholder="Diseño del prototipo&#10;Trabajo en equipos&#10;Pruebas de funcionamiento"></textarea>
+
+    <label>Resultados observados <span class="hint">(opcional)</span></label>
+    <textarea id="f_res" rows="3"></textarea>
+
+    <label>Fotos <span class="hint">Toca para tomar o elegir fotos. Escribe debajo qué muestra cada una.</span></label>
+    <div class="fotos" id="f_fotos">
+      <label class="addfoto" for="f_input">📷<br>Agregar fotos</label>
+    </div>
+    <input type="file" id="f_input" accept="image/*" multiple style="display:none">
+
+    <div style="margin-top:18px; display:flex; gap:10px;">
+      <button class="btn grande" id="f_guardar">💾 Guardar evidencia</button>
+    </div>
+    <div style="margin-top:8px"><button class="btn sec" id="f_limpiar" style="display:none">Cancelar edición</button></div>
+  </div>
+</section>
+
+<!-- ============ ESTADO ============ -->
+<section id="estado">
+  <div class="card">
+    <b>Avance del año</b>
+    <div class="barra"><div id="avance_barra" style="width:0"></div></div>
+    <div class="hint" id="avance_txt"></div>
+  </div>
+  <div class="card" style="padding:0; overflow-x:auto">
+    <table class="estado" id="tabla_estado"></table>
+  </div>
+  <div class="hint" style="margin:-6px 0 12px">Toca un número para ver los registros. En rojo: seguimientos que aún no tienen nada.</div>
+  <div id="lista"></div>
+</section>
+
+<!-- ============ GENERAR ============ -->
+<section id="generar">
+  <div class="card">
+    <h3 style="margin-top:0">Generar la carpeta de evidencias</h3>
+    <p>Se descarga un archivo <b>.zip</b> con una carpeta por competencia y, dentro de cada una, un documento Word con los seguimientos S1, S2 y S3, los textos y las fotos. También incluye la portada con la carta de entrega y el Anexo 2 (tabla resumen) llenado automáticamente.</p>
+    <div id="gen_faltan" class="aviso" style="display:none"></div>
+    <div style="margin-top:14px"><button class="btn grande" id="btn_generar">📦 Descargar carpeta completa (.zip)</button></div>
+    <div class="hint" id="gen_estado" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Copia de seguridad</h3>
+    <p class="hint" style="font-size:14px">Las evidencias se guardan <b>solo en este celular o computador</b>, dentro del navegador. Descarga una copia de seguridad con frecuencia y úsala para pasar las evidencias del celular al computador.</p>
+    <div class="acciones">
+      <button class="btn sec" id="btn_backup">⬇️ Descargar copia</button>
+      <label class="btn sec" style="margin:0">⬆️ Cargar copia<input type="file" id="in_backup" accept=".json,application/json" style="display:none"></label>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONFIG ============ -->
+<section id="config">
+  <div class="card">
+    <h3 style="margin-top:0">Datos generales</h3>
+    <div class="row">
+      <div><label>Año</label><input type="text" id="c_anio"></div>
+      <div><label>Ciudad</label><input type="text" id="c_ciudad"></div>
+    </div>
+    <div class="row">
+      <div><label>Institución</label><input type="text" id="c_inst"></div>
+      <div><label>Código DANE</label><input type="text" id="c_dane"></div>
+    </div>
+    <div class="row">
+      <div><label>Docente</label><input type="text" id="c_doc"></div>
+      <div><label>Cédula docente</label><input type="text" id="c_cc"></div>
+    </div>
+    <div class="row">
+      <div><label>Área que enseña</label><input type="text" id="c_areaens"></div>
+      <div><label>Secretaría de Educación</label><input type="text" id="c_sec"></div>
+    </div>
+    <div class="row">
+      <div><label>Evaluador(a)</label><input type="text" id="c_eva"></div>
+      <div><label>Cédula evaluador(a)</label><input type="text" id="c_evacc"></div>
+    </div>
+    <label>Cargo del evaluador(a)</label><input type="text" id="c_evacargo">
+    <div class="row">
+      <div><label>Fecha S1</label><input type="date" id="c_s1"></div>
+      <div><label>Fecha S2</label><input type="date" id="c_s2"></div>
+      <div><label>Fecha S3</label><input type="date" id="c_s3"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Competencias concertadas</h3>
+    <p class="hint" style="font-size:14px">Cópialas del Anexo 5 del año. El nombre de la carpeta y el del archivo son los que aparecerán en el .zip.</p>
+    <div id="c_comps"></div>
+    <div class="acciones"><button class="btn sec" id="c_add">➕ Agregar competencia</button></div>
+  </div>
+  <button class="btn grande" id="c_guardar">💾 Guardar configuración</button>
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-top:0">Empezar un año nuevo</h3>
+    <p class="hint" style="font-size:14px">Borra todas las evidencias registradas y conserva la configuración. <b>Descarga primero la copia de seguridad.</b></p>
+    <button class="btn peligro" id="c_reset">🗑️ Borrar evidencias registradas</button>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="lib/jszip.min.js"></script>
+<script src="lib/docx.js"></script>
+<script>
+// =================================================================== DATOS POR DEFECTO
+const COMPETENCIAS_POR_DEFECTO = [
+ {
+  "id": "c1",
+  "carpeta": "DOMINIO CURRICULAR",
+  "archivo": "EXPO AULA",
+  "area": "Académica",
+  "competencia": "Dominio curricular",
+  "tipo": "Funcional",
+  "evidencia": "Expo Aula: tecnología e informática y lectura crítica",
+  "contribucion": "Diseñar la Expo Aula como herramienta que despierte el interés colectivo de los estudiantes en tecnología e informática, mostrando dentro del salón prototipos, videos y trabajos de lectura crítica elaborados durante el año.",
+  "criterio": "Trabajos elaborados, mejorados y expuestos en el salón de clase con participación estudiantil activa en los 3 seguimientos."
+ },
+ {
+  "id": "c2",
+  "carpeta": "PLANEACION Y ORGANIZACION",
+  "archivo": "GOOGLE SITES",
+  "area": "Académica",
+  "competencia": "Planeación y organización",
+  "tipo": "Funcional",
+  "evidencia": "Plataforma educativa en Google Sites",
+  "contribucion": "Crear una plataforma educativa en Google Sites con los estudiantes, que integre videos explicativos, guías descargables, quizzes, glosario tecnológico y proyectos estudiantiles de tecnología e informática y lectura crítica, para consultar y practicar de forma autónoma.",
+  "criterio": "Plataforma educativa activa y en constante mejora, con contenidos accesibles para todos los estudiantes, enriquecida en cada seguimiento."
+ },
+ {
+  "id": "c3",
+  "carpeta": "PEDAGOGICA Y DIDACTICA",
+  "archivo": "CASA INTELIGENTE IOT",
+  "area": "Académica",
+  "competencia": "Pedagógica y didáctica",
+  "tipo": "Funcional",
+  "evidencia": "Casa inteligente IoT a escala 1:10",
+  "contribucion": "Diseñar una casa a escala 1:10 inteligente con tecnología IoT que integre sensores, programación y automatización del hogar, desarrollando en los estudiantes habilidades tecnológicas y comprensión del impacto de los sistemas conectados en la vida cotidiana.",
+  "criterio": "Proyecto funcional evaluado en creatividad del diseño, uso adecuado de sensores, calidad de la programación y reflexión sobre el impacto tecnológico, con avances en los 3 seguimientos."
+ },
+ {
+  "id": "c4",
+  "carpeta": "EVALUACION DEL APRENDIZAJE",
+  "archivo": "GOOGLE FORMS, QUIZIZZ, KAHOOT Y WORDWALL",
+  "area": "Académica",
+  "competencia": "Evaluación del aprendizaje",
+  "tipo": "Funcional",
+  "evidencia": "Evaluaciones digitales: Google Forms, Quizizz, Kahoot y Wordwall",
+  "contribucion": "Evaluar los periodos académicos al finalizar cada uno, mediante herramientas digitales gratuitas como Google Forms, Quizizz, Kahoot y Wordwall, acorde con los criterios del SIEE institucional.",
+  "criterio": "Evaluaciones digitales aplicadas al cierre de cada periodo, valoradas según apropiación de conocimientos, resolución de problemas y participación, bajo los criterios del SIEE."
+ },
+ {
+  "id": "c5",
+  "carpeta": "USO DE RECURSOS",
+  "archivo": "SISTEMA DE RIEGO AUTOMATIZADO",
+  "area": "Administrativa",
+  "competencia": "Uso de recursos",
+  "tipo": "Funcional",
+  "evidencia": "Prototipo de sistema de riego automatizado con Arduino (PRAES)",
+  "contribucion": "Diseñar e implementar un prototipo de sistema de riego automatizado con Arduino y sensores que optimice el uso del agua y los recursos del suelo, orientado al cuidado ambiental en el marco del PRAES institucional.",
+  "criterio": "Funcionalidad del prototipo, integración de sensores y actuadores, creatividad del diseño, uso eficiente del agua y comprensión del impacto ambiental."
+ },
+ {
+  "id": "c6",
+  "carpeta": "SEGUIMIENTO DE PROCESOS",
+  "archivo": "SEGUIMIENTO ACADEMICO",
+  "area": "Administrativa",
+  "competencia": "Seguimiento de procesos",
+  "tipo": "Funcional",
+  "evidencia": "Registro digital de seguimiento académico por periodo",
+  "contribucion": "Hacer seguimiento continuo al avance académico y formativo de los estudiantes mediante el registro sistemático de actividades, asistencia, desempeños y compromisos, utilizando herramientas digitales.",
+  "criterio": "Consistencia y oportunidad del registro, claridad de los reportes y uso de herramientas digitales conforme al SIEE."
+ },
+ {
+  "id": "c7",
+  "carpeta": "COMUNICACION INSTITUCIONAL",
+  "archivo": "REDES SOCIALES INSTITUCIONALES",
+  "area": "Comunitaria",
+  "competencia": "Comunicación institucional",
+  "tipo": "Funcional",
+  "evidencia": "Redes sociales institucionales y reuniones con padres",
+  "contribucion": "Usar las redes sociales institucionales como canal de comunicación asertiva con la comunidad educativa, publicando información sobre entrega de informes, reuniones, comunicados y actividades del POA institucional.",
+  "criterio": "Gestión y mantenimiento activo de las redes, pertinencia del contenido y frecuencia de divulgación en cada seguimiento."
+ },
+ {
+  "id": "c8",
+  "carpeta": "COMUNIDAD Y ENTORNO",
+  "archivo": "SEÑALIZACION VIAL",
+  "area": "Comunitaria",
+  "competencia": "Comunidad y entorno",
+  "tipo": "Funcional",
+  "evidencia": "Señalización vial interior y exterior (proyecto vial)",
+  "contribucion": "Señalizar los espacios comunes internos y externos de la institución, instalando avisos viales exteriores (velocidad y horario de paso de estudiantes) y demarcando carriles peatonales internos, desde el proyecto vial.",
+  "criterio": "Pertinencia, calidad y visibilidad de las señales, participación estudiantil e impacto en la seguridad y la convivencia."
+ },
+ {
+  "id": "c9",
+  "carpeta": "INICIATIVA",
+  "archivo": "TIMBRE ESCOLAR AUTOMATICO",
+  "area": "Comportamental",
+  "competencia": "Iniciativa (10%)",
+  "tipo": "Comportamental",
+  "evidencia": "Timbre escolar automático",
+  "contribucion": "Crear un timbre escolar automático para el aviso de receso escolar.",
+  "criterio": "Timbre escolar automático funcional con registro del proceso de diseño, implementación, mejoras técnicas y evidencias fotográficas."
+ },
+ {
+  "id": "c10",
+  "carpeta": "COMPROMISO SOCIAL E INSTITUCIONAL",
+  "archivo": "AGROSMART ESP32",
+  "area": "Comportamental",
+  "competencia": "Compromiso social e institucional (10%)",
+  "tipo": "Comportamental",
+  "evidencia": "AgroSmart ESP32: riego inteligente autónomo para la granja escolar (PRAE)",
+  "contribucion": "Crear estrategias para fortalecer el trabajo de la comunidad y su apoyo en las actividades del PRAE mediante el diseño e implementación del sistema AgroSmart ESP32 para la granja escolar.",
+  "criterio": "Sistema AgroSmart ESP32 funcional: riego automático basado en sensores de humedad, con control autónomo y monitoreo inalámbrico."
+ },
+ {
+  "id": "c11",
+  "carpeta": "TRABAJO EN EQUIPO",
+  "archivo": "MANTENIMIENTO DE EQUIPOS DE COMPUTO",
+  "area": "Comportamental",
+  "competencia": "Trabajo en equipo (10%)",
+  "tipo": "Comportamental",
+  "evidencia": "Revisión y mantenimiento de equipos de cómputo (sede central y sedes anexas)",
+  "contribucion": "Realizar la revisión y el mantenimiento de los computadores de la institución, en la sede central y las sedes anexas, según las necesidades identificadas.",
+  "criterio": "Informe técnico del diagnóstico, mantenimiento preventivo y seguimiento periódico, con registro fotográfico de las intervenciones."
+ }
+];
+const CONFIG_POR_DEFECTO = {
+  anio: "2027", ciudad: "Valparaíso – Caquetá", inst: "I.E.R. SANTIAGO DE LA SELVA", dane: "283860000506",
+  doc: "ANDRÉS JAIR RENTERÍA MURILLO", cc: "1.077.449.429", areaens: "Tecnología e Informática",
+  sec: "Secretaría de Educación Departamental del Caquetá",
+  eva: "GRISELA MAVESOY", evacc: "", evacargo: "Rectora",
+  s1: "", s2: "", s3: "",
+  comps: COMPETENCIAS_POR_DEFECTO
+};
+
+// =================================================================== BASE DE DATOS (IndexedDB)
+const DB = {
+  db: null,
+  open() { return new Promise((ok, err) => {
+    const r = indexedDB.open("evidencias_docente", 1);
+    r.onupgradeneeded = () => { const d = r.result; d.createObjectStore("kv"); d.createObjectStore("entradas", { keyPath: "id" }); };
+    r.onsuccess = () => { this.db = r.result; ok(); }; r.onerror = () => err(r.error);
+  }); },
+  tx(store, mode, fn) { return new Promise((ok, err) => { const t = this.db.transaction(store, mode); const s = t.objectStore(store); const res = fn(s); t.oncomplete = () => ok(res instanceof IDBRequest ? res.result : res); t.onerror = () => err(t.error); }); },
+  get(k) { return this.tx("kv", "readonly", s => s.get(k)); },
+  set(k, v) { return this.tx("kv", "readwrite", s => s.put(v, k)); },
+  all() { return this.tx("entradas", "readonly", s => s.getAll()); },
+  put(e) { return this.tx("entradas", "readwrite", s => s.put(e)); },
+  del(id) { return this.tx("entradas", "readwrite", s => s.delete(id)); },
+  clear() { return this.tx("entradas", "readwrite", s => s.clear()); },
+};
+
+let CFG = null, ENTRADAS = [], FOTOS_FORM = [];
+const $ = id => document.getElementById(id);
+const toast = (m, ms = 2600) => { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", ms); };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtFecha = iso => { if (!iso) return ""; const [y, m, d] = iso.split("-"); return `${d}/${m}/${y}`; };
+const hoy = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const compById = id => CFG.comps.find(c => c.id === id);
+
+// =================================================================== NAVEGACIÓN
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => irA(b.dataset.tab));
+function irA(tab) {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
+  document.querySelectorAll("section").forEach(x => x.classList.toggle("on", x.id === tab));
+  if (tab === "estado") pintarEstado();
+  if (tab === "generar") pintarFaltantes();
+  if (tab === "config") pintarConfig();
+  window.scrollTo(0, 0);
+}
+
+// =================================================================== FOTOS: reducir tamaño
+async function reducirFoto(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
+    const max = 1600; let w = img.naturalWidth, h = img.naturalHeight;
+    if (Math.max(w, h) > max) { const k = max / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    cv.getContext("2d").drawImage(img, 0, 0, w, h);
+    const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.8));
+    return { blob, w, h, caption: "" };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+// =================================================================== FORMULARIO
+function llenarSelectComp() {
+  $("f_comp").innerHTML = CFG.comps.map(c => `<option value="${c.id}">${esc(c.competencia)} — ${esc(c.evidencia)}</option>`).join("");
+  mostrarDescComp();
+}
+function mostrarDescComp() { const c = compById($("f_comp").value); $("f_comp_desc").textContent = c ? c.contribucion : ""; }
+$("f_comp").onchange = mostrarDescComp;
+
+function pintarFotosForm() {
+  const cont = $("f_fotos");
+  cont.querySelectorAll(".foto").forEach(n => { const u = n.querySelector("img").src; URL.revokeObjectURL(u); n.remove(); });
+  const add = cont.querySelector(".addfoto");
+  FOTOS_FORM.forEach((f, i) => {
+    const d = document.createElement("div"); d.className = "foto";
+    d.innerHTML = `<img src="${URL.createObjectURL(f.blob)}"><button class="x" title="Quitar">×</button><input type="text" placeholder="¿Qué muestra la foto?" value="${esc(f.caption)}">`;
+    d.querySelector("input").oninput = e => f.caption = e.target.value;
+    d.querySelector(".x").onclick = () => { FOTOS_FORM.splice(i, 1); pintarFotosForm(); };
+    cont.insertBefore(d, add);
+  });
+}
+$("f_input").onchange = async e => {
+  const files = [...e.target.files]; e.target.value = "";
+  if (!files.length) return;
+  toast("Procesando fotos…");
+  for (const f of files) { try { FOTOS_FORM.push(await reducirFoto(f)); } catch { toast("No se pudo leer una de las fotos"); } }
+  pintarFotosForm();
+};
+
+function limpiarForm() {
+  $("f_id").value = ""; $("f_titulo").value = ""; $("f_desc").value = ""; $("f_acts").value = ""; $("f_res").value = "";
+  $("f_fecha").value = hoy(); FOTOS_FORM = []; pintarFotosForm();
+  $("f_limpiar").style.display = "none"; $("f_guardar").textContent = "💾 Guardar evidencia";
+}
+$("f_limpiar").onclick = limpiarForm;
+
+$("f_guardar").onclick = async () => {
+  const desc = $("f_desc").value.trim();
+  if (!$("f_titulo").value.trim() && !desc) return toast("Escribe al menos el título o qué se hizo");
+  const e = {
+    id: $("f_id").value || ("e" + Date.now() + Math.random().toString(36).slice(2, 6)),
+    comp: $("f_comp").value, seg: +document.querySelector("input[name=f_seg]:checked").value,
+    fecha: $("f_fecha").value, titulo: $("f_titulo").value.trim(), desc, acts: $("f_acts").value.trim(), res: $("f_res").value.trim(),
+    fotos: FOTOS_FORM.map(f => ({ blob: f.blob, w: f.w, h: f.h, caption: f.caption.trim() })),
+    creado: Date.now()
+  };
+  try { await DB.put(e); } catch (er) { return toast("Error al guardar: " + er.message, 5000); }
+  ENTRADAS = await DB.all();
+  const c = compById(e.comp);
+  limpiarForm();
+  toast(`✅ Guardado en ${c ? c.competencia : ""} · S${e.seg}`);
+};
+
+function editar(id) {
+  const e = ENTRADAS.find(x => x.id === id); if (!e) return;
+  irA("registrar");
+  $("f_id").value = e.id; $("f_comp").value = e.comp; mostrarDescComp();
+  document.querySelector(`input[name=f_seg][value="${e.seg}"]`).checked = true;
+  $("f_fecha").value = e.fecha || ""; $("f_titulo").value = e.titulo; $("f_desc").value = e.desc; $("f_acts").value = e.acts; $("f_res").value = e.res;
+  FOTOS_FORM = e.fotos.map(f => ({ ...f })); pintarFotosForm();
+  $("f_limpiar").style.display = "inline-block"; $("f_guardar").textContent = "💾 Guardar cambios";
+}
+async function borrar(id) {
+  if (!confirm("¿Borrar este registro y sus fotos? No se puede deshacer.")) return;
+  await DB.del(id); ENTRADAS = await DB.all(); pintarEstado(); toast("Registro borrado");
+}
+
+// =================================================================== ESTADO
+let filtro = null;
+function pintarEstado() {
+  const t = $("tabla_estado"); let llenos = 0;
+  let h = `<tr><th style="text-align:left">Competencia</th><th>S1</th><th>S2</th><th>S3</th></tr>`;
+  CFG.comps.forEach(c => {
+    h += `<tr><td class="nom"><b>${esc(c.competencia)}</b><br><span class="hint">${esc(c.evidencia)}</span></td>`;
+    for (let s = 1; s <= 3; s++) {
+      const n = ENTRADAS.filter(e => e.comp === c.id && e.seg === s).length; if (n) llenos++;
+      h += `<td><span class="pill ${n ? "ok" : "no"}" data-c="${c.id}" data-s="${s}">${n ? "✓ " + n : "0"}</span></td>`;
+    }
+    h += `</tr>`;
+  });
+  t.innerHTML = h;
+  const total = CFG.comps.length * 3, pct = total ? Math.round(llenos / total * 100) : 0;
+  $("avance_barra").style.width = pct + "%";
+  $("avance_txt").textContent = `${llenos} de ${total} seguimientos con evidencia (${pct}%) · ${ENTRADAS.length} registros · ${ENTRADAS.reduce((a, e) => a + e.fotos.length, 0)} fotos`;
+  t.querySelectorAll(".pill").forEach(p => p.onclick = () => { filtro = { c: p.dataset.c, s: +p.dataset.s }; pintarLista(); });
+  pintarLista();
+}
+function pintarLista() {
+  const L = $("lista");
+  let es = [...ENTRADAS].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+  let tit = "Todos los registros";
+  if (filtro) { es = es.filter(e => e.comp === filtro.c && e.seg === filtro.s); const c = compById(filtro.c); tit = `${c ? c.competencia : ""} · S${filtro.s}`; }
+  let h = `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${esc(tit)}</b>${filtro ? `<button class="btn sec" id="ver_todos" style="padding:6px 10px">Ver todos</button>` : ""}</div>`;
+  if (!es.length) h += `<p class="hint">No hay registros aquí todavía.${filtro ? ` <a href="#" id="reg_aqui">Registrar uno ahora</a>` : ""}</p>`;
+  es.forEach(e => {
+    const c = compById(e.comp);
+    h += `<div class="entrada"><h4>${esc(e.titulo || "(sin título)")}</h4>
+      <div class="meta">${esc(c ? c.competencia : "Competencia eliminada")} · S${e.seg} · ${fmtFecha(e.fecha)} · ${e.fotos.length} foto(s)</div>
+      <div>${esc(e.desc).slice(0, 220)}${e.desc.length > 220 ? "…" : ""}</div>
+      <div class="mini" data-id="${e.id}"></div>
+      <div class="acciones"><button class="btn sec" data-ed="${e.id}">✏️ Editar</button><button class="btn peligro" data-del="${e.id}">🗑️ Borrar</button></div></div>`;
+  });
+  L.innerHTML = h + "</div>";
+  L.querySelectorAll(".mini").forEach(m => { const e = ENTRADAS.find(x => x.id === m.dataset.id); e.fotos.slice(0, 6).forEach(f => { const i = document.createElement("img"); i.src = URL.createObjectURL(f.blob); m.appendChild(i); }); });
+  L.querySelectorAll("[data-ed]").forEach(b => b.onclick = () => editar(b.dataset.ed));
+  L.querySelectorAll("[data-del]").forEach(b => b.onclick = () => borrar(b.dataset.del));
+  const vt = $("ver_todos"); if (vt) vt.onclick = () => { filtro = null; pintarLista(); };
+  const ra = $("reg_aqui"); if (ra) ra.onclick = ev => { ev.preventDefault(); const f = filtro; irA("registrar"); limpiarForm(); $("f_comp").value = f.c; mostrarDescComp(); document.querySelector(`input[name=f_seg][value="${f.s}"]`).checked = true; };
+}
+
+// =================================================================== CONFIGURACIÓN
+const CAMPOS = ["anio", "ciudad", "inst", "dane", "doc", "cc", "areaens", "sec", "eva", "evacc", "evacargo", "s1", "s2", "s3"];
+const CAMPOS_COMP = [["competencia", "Competencia"], ["tipo", "Tipo (Funcional o Comportamental)"], ["area", "Área de gestión (Académica, Administrativa, Comunitaria o Comportamental)"], ["evidencia", "Nombre de la evidencia"], ["contribucion", "Contribución individual"], ["criterio", "Criterio de evaluación"], ["carpeta", "Nombre de la carpeta"], ["archivo", "Nombre del archivo Word"]];
+function pintarConfig() {
+  CAMPOS.forEach(k => $("c_" + k).value = CFG[k] || "");
+  $("c_comps").innerHTML = CFG.comps.map((c, i) => `<details class="comp-edit" data-i="${i}"><summary>${i + 1}. ${esc(c.competencia)}</summary>
+    ${CAMPOS_COMP.map(([k, n]) => `<label>${n}</label>${k === "contribucion" || k === "criterio" ? `<textarea data-k="${k}" rows="3">${esc(c[k])}</textarea>` : `<input type="text" data-k="${k}" value="${esc(c[k])}">`}`).join("")}
+    <div class="acciones"><button class="btn peligro" data-quitar="${i}">Quitar esta competencia</button></div></details>`).join("");
+  $("c_comps").querySelectorAll("[data-quitar]").forEach(b => b.onclick = () => {
+    const c = CFG.comps[+b.dataset.quitar];
+    if (ENTRADAS.some(e => e.comp === c.id)) return toast("Esta competencia tiene registros. Bórralos o muévelos antes de quitarla.", 4000);
+    leerConfigForm(); CFG.comps.splice(+b.dataset.quitar, 1); pintarConfig();
+  });
+}
+function leerConfigForm() {
+  CAMPOS.forEach(k => CFG[k] = $("c_" + k).value.trim());
+  $("c_comps").querySelectorAll(".comp-edit").forEach(d => { const c = CFG.comps[+d.dataset.i]; d.querySelectorAll("[data-k]").forEach(x => c[x.dataset.k] = x.value.trim()); });
+}
+$("c_add").onclick = () => { leerConfigForm(); CFG.comps.push({ id: "c" + Date.now(), competencia: "Nueva competencia", tipo: "Funcional", area: "Académica", evidencia: "", contribucion: "", criterio: "", carpeta: "NUEVA COMPETENCIA", archivo: "EVIDENCIA" }); pintarConfig(); const all = $("c_comps").querySelectorAll("details"); all[all.length - 1].open = true; };
+$("c_guardar").onclick = async () => { leerConfigForm(); await DB.set("config", CFG); llenarSelectComp(); pintarSub(); toast("✅ Configuración guardada"); };
+$("c_reset").onclick = async () => {
+  if (!confirm("¿Borrar TODAS las evidencias registradas? Descarga antes la copia de seguridad.")) return;
+  if (!confirm("Confirma de nuevo: se borrarán todos los registros y fotos.")) return;
+  await DB.clear(); ENTRADAS = []; toast("Evidencias borradas. Ya puedes empezar el año nuevo.");
+};
+function pintarSub() { $("subtitulo").textContent = `${CFG.doc} · Evaluación de desempeño ${CFG.anio}`; }
+
+// =================================================================== COPIA DE SEGURIDAD
+const blobA64 = b => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
+const a64Blob = async d => (await fetch(d)).blob();
+function descargar(blob, nombre) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+$("btn_backup").onclick = async () => {
+  toast("Preparando copia…");
+  const es = []; for (const e of ENTRADAS) es.push({ ...e, fotos: await Promise.all(e.fotos.map(async f => ({ ...f, blob: await blobA64(f.blob) }))) });
+  descargar(new Blob([JSON.stringify({ app: "evidencias_docente", version: 1, config: CFG, entradas: es })], { type: "application/json" }), `COPIA_EVIDENCIAS_${CFG.anio}_${hoy()}.json`);
+};
+$("in_backup").onchange = async ev => {
+  const f = ev.target.files[0]; ev.target.value = ""; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text()); if (d.app !== "evidencias_docente") throw new Error("Archivo no válido");
+    if (!confirm(`La copia tiene ${d.entradas.length} registros. Se agregarán a los que ya tienes (los repetidos se reemplazan) y se cargará su configuración. ¿Continuar?`)) return;
+    for (const e of d.entradas) { e.fotos = await Promise.all(e.fotos.map(async x => ({ ...x, blob: await a64Blob(x.blob) }))); await DB.put(e); }
+    CFG = d.config; await DB.set("config", CFG); ENTRADAS = await DB.all(); llenarSelectComp(); pintarSub(); toast("✅ Copia cargada");
+  } catch (er) { toast("No se pudo cargar la copia: " + er.message, 5000); }
+};
+
+// =================================================================== GENERAR WORD
+function pintarFaltantes() {
+  const f = [];
+  CFG.comps.forEach(c => { const s = [1, 2, 3].filter(n => !ENTRADAS.some(e => e.comp === c.id && e.seg === n)); if (s.length) f.push(`${c.competencia}: ${s.map(x => "S" + x).join(", ")}`); });
+  const a = $("gen_faltan");
+  if (f.length) { a.style.display = "block"; a.innerHTML = `<b>Aún faltan registros en:</b><br>${f.map(esc).join("<br>")}<br><span class="hint">Puedes generar de todas formas; esos seguimientos saldrán marcados como pendientes.</span>`; }
+  else a.style.display = "none";
+}
+
+$("btn_generar").onclick = async () => {
+  const b = $("btn_generar"); b.disabled = true; $("gen_estado").textContent = "Generando documentos… (puede tardar un poco si hay muchas fotos)";
+  try { await generarZip(); $("gen_estado").textContent = "✅ Listo. Revisa tus descargas."; }
+  catch (er) { console.error(er); $("gen_estado").textContent = "Error: " + er.message; }
+  b.disabled = false;
+};
+
+async function generarZip() {
+  const D = window.docx;
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType, HeadingLevel, Header, Footer, PageNumber, BorderStyle, LevelFormat, PageBreak, VerticalAlign, TableLayoutType, HeightRule, TabStopType, ImageRun, PageOrientation } = D;
+  const FONT = "Arial", AZUL = "1F4E79", AZUL_CLARO = "DCE6F1";
+  const run = (t, o = {}) => new TextRun({ text: t, font: FONT, size: o.size || 22, bold: o.bold, italics: o.italics, color: o.color, highlight: o.hl ? "yellow" : undefined });
+  const P = (t, o = {}) => new Paragraph({ children: [run(t, o)], alignment: o.align || AlignmentType.JUSTIFIED, spacing: { after: o.after ?? 120, before: o.before ?? 0, line: 276 } });
+  const H1 = t => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: t, font: FONT })] });
+  const H2 = t => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: t, font: FONT })] });
+  const H3 = t => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun({ text: t, font: FONT })] });
+  const bullet = t => new Paragraph({ numbering: { reference: "vinetas", level: 0 }, children: [run(t)], spacing: { after: 60 } });
+  const pb = () => new Paragraph({ children: [new PageBreak()] });
+  const bd = { style: BorderStyle.SINGLE, size: 4, color: "8EA9C1" }, borders = { top: bd, bottom: bd, left: bd, right: bd };
+  const nb = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, noBorders = { top: nb, bottom: nb, left: nb, right: nb };
+  const cell = (content, w, o = {}) => new TableCell({
+    children: Array.isArray(content) ? content : [new Paragraph({ children: [run(content, { size: o.size || 20, bold: o.bold, color: o.color, hl: o.hl })], alignment: o.align || AlignmentType.LEFT, spacing: { after: 0 } })],
+    width: { size: w, type: WidthType.DXA }, borders: o.noBorder ? noBorders : borders, columnSpan: o.span,
+    shading: o.fill ? { fill: o.fill, type: ShadingType.CLEAR, color: "auto" } : undefined,
+    margins: { top: 70, bottom: 70, left: 110, right: 110 }, verticalAlign: o.valign || VerticalAlign.CENTER });
+  const table = (ws, rows) => new Table({ width: { size: ws.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: ws, layout: TableLayoutType.FIXED, rows });
+
+  const styles = { default: { document: { run: { font: FONT, size: 22 } } }, paragraphStyles: [
+    { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 30, bold: true, font: FONT, color: AZUL }, paragraph: { spacing: { before: 120, after: 160 }, keepNext: true, outlineLevel: 0 } },
+    { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 25, bold: true, font: FONT, color: "FFFFFF" }, paragraph: { spacing: { before: 120, after: 120 }, keepNext: true, outlineLevel: 1, shading: { fill: AZUL, type: ShadingType.CLEAR, color: "auto" } } },
+    { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 22, bold: true, font: FONT, color: AZUL }, paragraph: { spacing: { before: 180, after: 80 }, keepNext: true, outlineLevel: 2, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: "8EA9C1", space: 1 } } } },
+  ] };
+  const numbering = { config: [{ reference: "vinetas", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 270 } } } }] }] };
+  const mkHeader = W => new Header({ children: [new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: AZUL, space: 2 } }, tabStops: [{ type: TabStopType.RIGHT, position: W }],
+    children: [new TextRun({ text: CFG.inst, font: FONT, size: 16, bold: true, color: AZUL }), new TextRun({ text: `\tEvaluación Anual de Desempeño Laboral Docente ${CFG.anio} — Decreto 1278 de 2002`, font: FONT, size: 16, color: "595959" })] })] });
+  const mkFooter = W => new Footer({ children: [new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: W }], children: [
+    new TextRun({ text: CFG.doc, font: FONT, size: 16, color: "595959" }), new TextRun({ text: "\tPágina ", font: FONT, size: 16, color: "595959" }), new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: "595959" })] })] });
+  const W = 9360;
+  const pageP = { size: { width: 12240, height: 15840 }, margin: { top: 1300, bottom: 1100, left: 1440, right: 1440, header: 600, footer: 500 } };
+  const mkDoc = (children, land) => {
+    const w = land ? 12960 : W;
+    const page = land ? { size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE }, margin: { top: 1000, bottom: 900, left: 1000, right: 1000, header: 500, footer: 400 } } : pageP;
+    return new Document({ styles, numbering, sections: [{ properties: { page }, headers: { default: mkHeader(land ? 13840 : w) }, footers: { default: mkFooter(land ? 13840 : w) }, children }] });
+  };
+  const segFecha = s => fmtFecha(CFG["s" + s]);
+  const firmas = () => {
+    const cw = W / 2;
+    const f = (n, c, r) => cell([
+      new Paragraph({ spacing: { before: 700, after: 0 }, alignment: AlignmentType.CENTER, children: [run("______________________________", { size: 20 })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 0 }, children: [run(n, { size: 20, bold: true })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 0 }, children: [run("C.C. " + (c || "__________"), { size: 18 })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 0 }, children: [run(r, { size: 18 })] })], cw, { noBorder: true });
+    return new Table({ width: { size: W, type: WidthType.DXA }, columnWidths: [cw, cw], borders: { top: nb, bottom: nb, left: nb, right: nb, insideHorizontal: nb, insideVertical: nb },
+      rows: [new TableRow({ children: [f(CFG.doc, CFG.cc, "Docente evaluado"), f(CFG.eva, CFG.evacc, "Evaluador(a)")] })] });
+  };
+
+  // ---- foto: ajusta tamaño para que quepa en media página
+  const fotoRun = async f => {
+    const buf = new Uint8Array(await f.blob.arrayBuffer());
+    const maxW = 290, maxH = 260; let w = f.w || 800, h = f.h || 600; const k = Math.min(maxW / w, maxH / h); w = Math.round(w * k); h = Math.round(h * k);
+    return new ImageRun({ type: "jpg", data: buf, transformation: { width: w, height: h } });
+  };
+  const fotosGrid = async (fotos, contador) => {
+    const cw = W / 2, rows = [];
+    for (let i = 0; i < fotos.length; i += 2) {
+      const par = fotos.slice(i, i + 2), celdas = [];
+      for (const f of par) {
+        contador.n++;
+        celdas.push(cell([
+          new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [await fotoRun(f)] }),
+          new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 0 }, children: [run(`Fotografía ${contador.n}: `, { size: 18, bold: true }), run(f.caption || "", { size: 18 })] })
+        ], cw, { valign: VerticalAlign.BOTTOM }));
+      }
+      if (celdas.length === 1) celdas.push(cell("", cw));
+      rows.push(new TableRow({ cantSplit: true, children: celdas }));
+    }
+    return table([cw, cw], rows);
+  };
+
+  const zip = new JSZip();
+  const limpio = s => (s || "SIN NOMBRE").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\\/:*?"<>|]/g, "").trim();
+  const raiz = zip.folder(limpio(`EVIDENCIAS ${CFG.anio} ${CFG.doc}`));
+
+  // ---- un documento por competencia
+  for (const [ci, c] of CFG.comps.entries()) {
+    $("gen_estado").textContent = `Generando ${ci + 1} de ${CFG.comps.length}: ${c.competencia}…`;
+    const contador = { n: 0 };
+    const L = 2600, R = W - L, frow = (k, v) => new TableRow({ children: [cell(k, L, { bold: true, fill: AZUL_CLARO }), cell(v || "", R)] });
+    const ch = [
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [run(`EVIDENCIA ${ci + 1}`, { bold: true, color: "595959" })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [run((c.evidencia || c.competencia).toUpperCase(), { size: 28, bold: true, color: AZUL })] }),
+      table([L, R], [
+        frow("Establecimiento educativo", `${CFG.inst} — Código DANE ${CFG.dane}`), frow("Docente evaluado", `${CFG.doc} — C.C. ${CFG.cc}`), frow("Evaluador(a)", CFG.eva),
+        frow(c.tipo === "Comportamental" ? "Tipo de competencia" : "Área de gestión", c.tipo === "Comportamental" ? "Comportamental" : c.area),
+        frow("Competencia", c.competencia), frow("Evidencia", c.evidencia), frow("Contribución individual", c.contribucion), frow("Criterio de evaluación", c.criterio)]),
+      new Paragraph({ children: [] })];
+    for (let s = 1; s <= 3; s++) {
+      if (s > 1) ch.push(pb());
+      const es = ENTRADAS.filter(e => e.comp === c.id && e.seg === s).sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+      const fechaSeg = segFecha(s) || (es[0] ? fmtFecha(es[0].fecha) : "");
+      ch.push(H2(`  SEGUIMIENTO S${s}${fechaSeg ? "   |   Fecha: " + fechaSeg : ""}`));
+      if (!es.length) { ch.push(P("Pendiente: aún no hay registros para este seguimiento.", { hl: true })); continue; }
+      for (const [k, e] of es.entries()) {
+        if (k > 0) ch.push(new Paragraph({ spacing: { before: 240 }, border: { top: { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF", space: 6 } }, children: [] }));
+        ch.push(new Paragraph({ spacing: { after: 120 }, children: [run(e.titulo || "Actividad", { bold: true, size: 24 }), run(e.fecha ? `   (${fmtFecha(e.fecha)})` : "", { size: 20, color: "595959" })] }));
+        if (e.desc) { ch.push(H3("Descripción de la evidencia")); e.desc.split(/\n\s*\n/).forEach(p => ch.push(P(p.replace(/\n/g, " ").trim()))); }
+        const acts = (e.acts || "").split("\n").map(x => x.replace(/^[-•*\s]+/, "").trim()).filter(Boolean);
+        if (acts.length) { ch.push(H3("Actividades desarrolladas")); acts.forEach(a => ch.push(bullet(a))); }
+        if (e.res) { ch.push(H3("Resultados observados")); e.res.split(/\n\s*\n/).forEach(p => ch.push(P(p.replace(/\n/g, " ").trim()))); }
+        if (e.fotos.length) { ch.push(H3("Registro fotográfico")); ch.push(await fotosGrid(e.fotos, contador)); }
+      }
+    }
+    ch.push(new Paragraph({ children: [] }));
+    ch.push(H3("Conclusión"));
+    ch.push(P(`A lo largo de los seguimientos se dio cumplimiento a la evidencia concertada para la competencia ${c.competencia.replace(/\s*\(\d+%\)/, "").toLowerCase()}, con avances visibles en cada etapa y participación activa de los estudiantes y de la comunidad educativa.`));
+    ch.push(firmas());
+    raiz.folder(limpio(c.carpeta)).file(limpio(c.archivo) + ".docx", await Packer.toBlob(mkDoc(ch)));
+  }
+
+  // ---- Anexo 2 automático
+  $("gen_estado").textContent = "Generando Anexo 2…";
+  const ws = [700, 1500, 1100, 5560, 2400, 1700];
+  const filas = [new TableRow({ tableHeader: true, children: ["No. Folio", "Fecha incorporación (dd/mm/aaaa)", "Tipo (D/T)", "Nombre de la evidencia", "Competencias que soporta", "Firma"].map((h, i) => cell(h, ws[i], { bold: true, fill: AZUL_CLARO, align: AlignmentType.CENTER, size: 18 })) })];
+  let folio = 0;
+  CFG.comps.forEach(c => { for (let s = 1; s <= 3; s++) {
+    const es = ENTRADAS.filter(e => e.comp === c.id && e.seg === s);
+    folio++;
+    const fecha = segFecha(s) || (es[0] ? fmtFecha(es[0].fecha) : "");
+    const nombre = `${c.evidencia} — S${s}: ` + (es.length ? es.map(e => e.titulo || "actividad").join("; ") + ". Informe escrito y registro fotográfico." : "pendiente");
+    filas.push(new TableRow({ cantSplit: true, children: [cell(String(folio), ws[0], { align: AlignmentType.CENTER, size: 18 }), cell(fecha, ws[1], { align: AlignmentType.CENTER, size: 18 }), cell("D", ws[2], { align: AlignmentType.CENTER, size: 18 }), cell(nombre, ws[3], { size: 18, hl: !es.length }), cell(c.competencia, ws[4], { size: 18, fill: "E2EFD9" }), cell("", ws[5])] }));
+  } });
+  const enc = table([4320, 4320, 4320], [
+    new TableRow({ children: [cell("Establecimiento educativo: " + CFG.inst, 8640, { span: 2, bold: true }), cell("Código DANE: " + CFG.dane, 4320, { bold: true })] }),
+    new TableRow({ children: [cell("Nombre del evaluado: " + CFG.doc, 8640, { span: 2, bold: true }), cell("CC " + CFG.cc, 4320, { bold: true })] }),
+    new TableRow({ children: [cell("Nombre del evaluador: " + CFG.eva, 8640, { span: 2, bold: true }), cell("CC " + (CFG.evacc || "__________"), 4320, { bold: true })] })]);
+  raiz.file("ANEXO 2 TABLA RESUMEN DE EVIDENCIAS.docx", await Packer.toBlob(mkDoc([
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [run("ANEXO 2. TABLA RESUMEN DE EVIDENCIAS", { bold: true, size: 26, color: AZUL })] }),
+    enc, new Paragraph({ children: [] }), table(ws, filas)], true)));
+
+  // ---- Presentación: portada, carta, índice
+  $("gen_estado").textContent = "Generando portada…";
+  const C = (t, o = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: o.after ?? 120 }, children: [run(t, { size: o.size || 24, bold: o.bold, color: o.color })] });
+  const pres = [
+    C("REPÚBLICA DE COLOMBIA", { size: 20, color: "595959", after: 0 }), C(CFG.sec, { size: 20, color: "595959", after: 600 }),
+    C(CFG.inst, { size: 36, bold: true, color: AZUL, after: 60 }), C("Código DANE " + CFG.dane, { size: 22, after: 60 }), C(CFG.ciudad, { size: 22, after: 1100 }),
+    new Paragraph({ alignment: AlignmentType.CENTER, border: { top: { style: BorderStyle.SINGLE, size: 12, color: AZUL, space: 8 }, bottom: { style: BorderStyle.SINGLE, size: 12, color: AZUL, space: 8 } }, spacing: { after: 160 }, children: [run("CARPETA DE EVIDENCIAS", { size: 40, bold: true, color: AZUL })] }),
+    C("Evaluación Anual de Desempeño Laboral", { size: 28, bold: true, after: 60 }), C("Docentes y directivos docentes — Decreto Ley 1278 de 2002", { size: 22, after: 60 }), C("Año " + CFG.anio, { size: 26, bold: true, after: 1200 }),
+    C("Docente evaluado", { size: 20, color: "595959", after: 0 }), C(CFG.doc, { size: 26, bold: true, after: 0 }), C("C.C. " + CFG.cc, { size: 22, after: 0 }), C("Área: " + CFG.areaens, { size: 22, after: 400 }),
+    C("Evaluador(a)", { size: 20, color: "595959", after: 0 }), C(CFG.eva, { size: 26, bold: true, after: 0 }), C(CFG.evacargo, { size: 22, after: 1000 }),
+    C(`${CFG.ciudad.split(/[–-]/)[0].trim()}, ${CFG.anio}`, { size: 22 }), pb(),
+    P(`${CFG.ciudad.split(/[–-]/)[0].trim()}, ____ de ______________ de ${CFG.anio}`, { align: AlignmentType.LEFT, after: 480 }),
+    P("Señor(a)", { align: AlignmentType.LEFT, after: 0 }), P(CFG.eva, { align: AlignmentType.LEFT, bold: true, after: 0 }), P(CFG.evacargo, { align: AlignmentType.LEFT, after: 0 }), P(CFG.inst, { align: AlignmentType.LEFT, after: 0 }), P(CFG.ciudad, { align: AlignmentType.LEFT, after: 360 }),
+    P(`Asunto: Entrega de evidencias — Evaluación Anual de Desempeño Laboral ${CFG.anio}`, { align: AlignmentType.LEFT, bold: true, after: 360 }),
+    P("Cordial saludo.", { after: 240 }),
+    P(`Por medio de la presente me permito hacer entrega formal de la carpeta de evidencias correspondiente a la Evaluación Anual de Desempeño Laboral del año ${CFG.anio}, de acuerdo con las competencias, contribuciones individuales, criterios y evidencias concertados en el Anexo 5 y relacionados en el Anexo 2 (tabla resumen de evidencias).`),
+    P(`La carpeta contiene las evidencias de las ${CFG.comps.length} competencias concertadas, organizadas por seguimiento (S1, S2 y S3), con informe escrito y registro fotográfico, según el índice que se anexa.`),
+    P("Quedo atento a cualquier observación o requerimiento adicional."), P("Atentamente,", { before: 240, after: 900 }),
+    P("______________________________", { align: AlignmentType.LEFT, after: 0 }), P(CFG.doc, { align: AlignmentType.LEFT, bold: true, after: 0 }), P("C.C. " + CFG.cc, { align: AlignmentType.LEFT, after: 0 }), P("Docente de " + CFG.areaens, { align: AlignmentType.LEFT, after: 600 }),
+    P("Recibido por: ______________________   Fecha: ___________   Firma: ______________________", { size: 18, align: AlignmentType.LEFT, before: 360 }),
+    pb(), H1("Índice de evidencias")];
+  const iw = [500, 2100, 1400, 2660, 2700];
+  const ir = [new TableRow({ tableHeader: true, children: ["N.º", "Competencia", "Área / tipo", "Evidencia", "Carpeta"].map((h, i) => cell(h, iw[i], { bold: true, fill: AZUL, color: "FFFFFF", align: AlignmentType.CENTER, size: 18 })) })];
+  CFG.comps.forEach((c, i) => ir.push(new TableRow({ cantSplit: true, children: [cell(String(i + 1), iw[0], { align: AlignmentType.CENTER, size: 18 }), cell(c.competencia, iw[1], { size: 18, bold: true }), cell(c.tipo === "Comportamental" ? "Comportamental" : c.area, iw[2], { size: 18 }), cell(c.evidencia, iw[3], { size: 18 }), cell(c.carpeta, iw[4], { size: 16 })] })));
+  pres.push(table(iw, ir));
+  raiz.folder("PRESENTACION").file("PORTADA, CARTA E INDICE.docx", await Packer.toBlob(mkDoc(pres)));
+
+  $("gen_estado").textContent = "Comprimiendo…";
+  const blob = await zip.generateAsync({ type: "blob" });
+  descargar(blob, limpio(`EVIDENCIAS ${CFG.anio} ${CFG.doc}`) + ".zip");
+}
+
+// =================================================================== INICIO
+(async () => {
+  try { await DB.open(); } catch { alert("Este navegador no permite guardar datos. Prueba con Chrome."); return; }
+  CFG = await DB.get("config");
+  if (!CFG) { CFG = JSON.parse(JSON.stringify(CONFIG_POR_DEFECTO)); await DB.set("config", CFG); }
+  ENTRADAS = await DB.all();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  llenarSelectComp(); pintarSub(); limpiarForm();
+  if (!window.docx || !window.JSZip) toast("Falta la carpeta lib: sube también lib/docx.js y lib/jszip.min.js", 6000);
+})();
+</script>
+</body>
+</html>

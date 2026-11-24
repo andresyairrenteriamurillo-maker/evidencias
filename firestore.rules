@@ -24,6 +24,12 @@ service cloud.firestore {
       allow write: if esRectora();
     }
 
+    // Observaciones y valoraciones: solo la rectora escribe; el docente y la rectora leen
+    match /observaciones/{uid}/{sub=**} {
+      allow read: if conSesion() && (request.auth.uid == uid || esRectora());
+      allow write: if esRectora();
+    }
+
     // Datos de cada docente: solo el dueño escribe; el dueño y la rectora leen
     match /usuarios/{uid} {
       allow read: if conSesion() && (request.auth.uid == uid || esRectora());

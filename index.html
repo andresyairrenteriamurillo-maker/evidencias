@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mis Evidencias Docentes</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📁</text></svg>">
+<link rel="icon" type="image/png" href="img/favicon-48.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Evidencias IERSS">
+<meta name="application-name" content="Evidencias IERSS">
 <meta name="theme-color" content="#1E3A8A">
 <script>try{var t=localStorage.getItem("tema");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
@@ -162,6 +168,18 @@
   header.compacto nav#menu button { flex-direction:row; align-items:center; gap:6px; padding:8px 10px; border-radius:12px; }
   header.compacto .ti { font-size:17px; margin:0; } header.compacto .ts { display:none; } header.compacto .tl { font-size:12.5px; }
   header.compacto .usuario .u-info, header.compacto .rol { display:none; }
+  .logo img { width:82%; height:82%; object-fit:contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+  header .logo { background:rgba(255,255,255,.92); }
+  #login .logo { width:96px; height:96px; background:#fff; border-radius:24px; box-shadow:var(--sombra); }
+  /* ===== Observaciones ===== */
+  .obs { border:1px solid var(--borde); border-left:4px solid var(--c, var(--pri)); border-radius:12px; padding:10px 12px; margin-top:10px; background:var(--campo); }
+  .obs .oh { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:13px; margin-bottom:4px; }
+  .obs .ot { font-size:14px; white-space:pre-wrap; }
+  .val { font-size:11px; font-weight:800; padding:3px 8px; border-radius:20px; }
+  .val.Sobresaliente { background:var(--ok-bg); color:var(--ok); } .val.Satisfactorio { background:var(--pri-suave); color:var(--pri); } .val.No { background:var(--no-bg); color:var(--no); }
+  .nueva { font-size:10px; font-weight:800; background:linear-gradient(135deg,#F59E0B,#EC4899); color:#fff; padding:2px 7px; border-radius:20px; }
+  .pill .burb { margin-left:3px; }
+  table.estado td.sel { outline:2px solid var(--pri); outline-offset:-2px; border-radius:6px; }
   /* ===== Tarjetas de resumen ===== */
   .stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px; }
   .stat { position:relative; overflow:hidden; border-radius:var(--radio); padding:14px; background:var(--card); border:1px solid var(--borde); box-shadow:var(--sombra); cursor:pointer; transition: transform .18s, box-shadow .2s; }
@@ -171,6 +189,7 @@
   .stat .sv { font-size:24px; font-weight:800; line-height:1.1; }
   .stat .sl { font-size:12px; color:var(--suave); margin-top:2px; }
   header.compacto nav#menu button.on::after { display:none; }
+  header.compacto .usuario { order:0; width:auto; padding:3px; } header.compacto .avatar { width:28px; height:28px; font-size:12px; } header.compacto .usuario button { width:26px; height:26px; font-size:13px; }
   @media (max-width:640px) { header h1 { font-size:18px; } header.compacto nav#menu { grid-template-columns:repeat(auto-fit, minmax(44px,1fr)); } header.compacto nav#menu button { justify-content:center; padding:8px 4px; } header.compacto .tl { display:none; } header.compacto .ti { font-size:20px; } }
   @media (max-width:640px) { .stats { grid-template-columns:repeat(2, 1fr); } nav#menu { grid-template-columns:repeat(3, 1fr); } .usuario { order:5; width:100%; } .u-info b, .u-info span { max-width:none; } .usuario .rol { margin-left:auto; } }
   @media (max-width:520px) { .row { flex-direction:column; gap:0; } nav button { padding:10px 10px 12px; font-size:13px; } }
@@ -180,7 +199,7 @@
 <header id="cabecera">
   <div class="orbes"><span></span><span></span><span></span></div>
   <div class="top">
-    <div class="logo">📁</div>
+    <div class="logo"><img src="img/escudo.png" alt="Escudo IERSS"></div>
     <div class="titulos"><h1>Mis Evidencias Docentes</h1><div class="sub" id="subtitulo"></div></div>
     <div class="usuario" id="usuario"><div class="avatar" id="avatar">?</div><div class="u-info"><b id="usuario_nom"></b><span id="usuario_txt"></span></div><span class="rol" id="usuario_rol">Docente</span><button id="salir" title="Cerrar sesión">⏻</button></div>
     <button id="tema" title="Cambiar modo día / noche">🌙</button>
@@ -264,6 +283,7 @@
     <table class="estado" id="tabla_estado"></table>
   </div>
   <div class="hint" style="margin:-6px 0 12px">Toca un número para ver los registros. En rojo: seguimientos que aún no tienen nada.</div>
+  <div id="obs_docente"></div>
   <div id="lista"></div>
 </section>
 
@@ -393,7 +413,7 @@
   </div>
 </section>
 <div id="login"><div class="card">
-  <div class="logo">📁</div>
+  <div class="logo"><img src="img/escudo.png" alt="Escudo IERSS"></div>
   <h3 style="margin:0 0 4px">Mis Evidencias Docentes</h3>
   <p id="login_inst"></p>
   <p id="login_msg">Entra con tu cuenta de Google para registrar tus evidencias. Solo tú y la rectora pueden verlas.</p>
@@ -620,7 +640,7 @@ const DB = {
   clear() { return this.tx("entradas", "readwrite", s => s.clear()); },
 };
 
-let CFG = null, ENTRADAS = [], FOTOS_FORM = [];
+let CFG = null, ENTRADAS = [], FOTOS_FORM = [], OBS = {};
 const $ = id => document.getElementById(id);
 const toast = (m, ms = 2600) => { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", ms); };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -741,11 +761,13 @@ function pintarEstado() {
     h += `<tr><td class="nom"><b>${esc(c.competencia)}</b><br><span class="hint">${esc(c.evidencia)}</span></td>`;
     for (let s = 1; s <= 3; s++) {
       const n = ENTRADAS.filter(e => e.comp === c.id && e.seg === s).length; if (n) llenos++;
-      h += `<td><span class="pill ${n ? "ok" : "no"}" data-c="${c.id}" data-s="${s}">${n ? "✓ " + n : "0"}</span></td>`;
+      const o = OBS[c.id + "_" + s];
+      h += `<td><span class="pill ${n ? "ok" : "no"}" data-c="${c.id}" data-s="${s}">${n ? "✓ " + n : "0"}${o && o.texto ? '<span class="burb">💬</span>' : ""}</span></td>`;
     }
     h += `</tr>`;
   });
   t.innerHTML = h;
+  pintarObsDocente();
   const total = CFG.comps.length * 3, pct = total ? Math.round(llenos / total * 100) : 0;
   $("avance_barra").style.width = pct + "%"; $("anillo").style.setProperty("--p", pct); $("anillo_txt").textContent = pct + "%";
   $("avance_txt").textContent = `${llenos} de ${total} seguimientos con evidencia (${pct}%) · ${ENTRADAS.length} registros · ${ENTRADAS.reduce((a, e) => a + e.fotos.length, 0)} fotos`;
@@ -758,6 +780,7 @@ function pintarLista() {
   let tit = "Todos los registros";
   if (filtro) { es = es.filter(e => e.comp === filtro.c && e.seg === filtro.s); const c = compById(filtro.c); tit = `${c ? c.competencia : ""} · S${filtro.s}`; }
   let h = `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${esc(tit)}</b>${filtro ? `<button class="btn sec" id="ver_todos" style="padding:6px 10px">Ver todos</button>` : ""}</div>`;
+  if (filtro && OBS[filtro.c + "_" + filtro.s] && OBS[filtro.c + "_" + filtro.s].texto) h += obsHTML(filtro.c, filtro.s, OBS[filtro.c + "_" + filtro.s]);
   if (!es.length) h += `<p class="hint">No hay registros aquí todavía.${filtro ? ` <a href="#" id="reg_aqui">Registrar uno ahora</a>` : ""}</p>`;
   es.forEach(e => {
     const c = compById(e.comp);
@@ -1142,6 +1165,8 @@ async function generarZip() {
         if (e.res) { ch.push(H3("Resultados observados")); e.res.split(/\n\s*\n/).forEach(p => ch.push(P(p.replace(/\n/g, " ").trim()))); }
         if (e.fotos.length) { ch.push(H3("Registro fotográfico")); ch.push(await fotosGrid(e.fotos, contador)); }
       }
+      const ob = OBS[c.id + "_" + s];
+      if (ob && ob.texto) { ch.push(H3("Observación de la rectoría")); if (ob.valoracion) ch.push(P("Valoración: " + ob.valoracion, { bold: true })); ch.push(P(ob.texto)); }
     }
     ch.push(new Paragraph({ children: [] }));
     ch.push(H3("Conclusión"));
@@ -1158,7 +1183,10 @@ async function generarZip() {
   // ---- Presentación: portada, carta, índice
   $("gen_estado").textContent = "Generando portada…";
   const C = (t, o = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: o.after ?? 120 }, children: [run(t, { size: o.size || 24, bold: o.bold, color: o.color })] });
+  let escudoRun = null;
+  try { const r = await fetch("img/escudo.png"); if (r.ok) { const buf = new Uint8Array(await r.arrayBuffer()); escudoRun = new ImageRun({ type: "png", data: buf, transformation: { width: 110, height: 170 } }); } } catch (e) {}
   const pres = [
+    ...(escudoRun ? [new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 160 }, children: [escudoRun] })] : []),
     C("REPÚBLICA DE COLOMBIA", { size: 20, color: "595959", after: 0 }), C(CFG.sec, { size: 20, color: "595959", after: 600 }),
     C(CFG.inst, { size: 36, bold: true, color: AZUL, after: 60 }), C("Código DANE " + CFG.dane, { size: 22, after: 60 }), C(CFG.ciudad, { size: 22, after: 1100 }),
     new Paragraph({ alignment: AlignmentType.CENTER, border: { top: { style: BorderStyle.SINGLE, size: 12, color: AZUL, space: 8 }, bottom: { style: BorderStyle.SINGLE, size: 12, color: AZUL, space: 8 } }, spacing: { after: 160 }, children: [run("CARPETA DE EVIDENCIAS", { size: 40, bold: true, color: AZUL })] }),
@@ -1373,6 +1401,7 @@ const LocalStore = {
   async del(id) { await DB.del(id); },
   async nuevoAnio() { await DB.clear(); },
   async fotoBlob(f) { return f.blob; },
+  async loadObs() { return {}; },
 };
 
 function cargarScript(src) { return new Promise((ok, err) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => err(new Error("No se pudo cargar " + src)); document.head.appendChild(s); }); }
@@ -1452,6 +1481,8 @@ const CloudStore = {
     await this.ref(`entradas/${id}`).delete();
   },
   async nuevoAnio() { /* en la nube cada año se guarda por separado; no se borra nada */ },
+  async loadObs(uid = this.uid, anio = CFG.anio) { const d = await this.db.doc(`observaciones/${uid}/anios/${anio}`).get(); return d.exists ? (d.data().items || {}) : {}; },
+  async saveObs(uid, anio, key, obj) { await this.db.doc(`observaciones/${uid}/anios/${anio}`).set({ items: { [key]: obj } }, { merge: true }); },
   async fotoBlob(f) {
     if (f.blob) return f.blob;
     const d = await this.db.doc(`usuarios/${f.uid || this.uid}/fotos/${f.fid}`).get();
@@ -1493,6 +1524,7 @@ const Rectoria = {
         const plan = await Store.db.doc(`usuarios/${u.uid}/planes/${anio}`).get();
         u.comps = plan.exists ? plan.data().comps : [];
         u.entradas = await Store.list(u.uid, anio);
+        try { u.obs = await Store.loadObs(u.uid, anio); } catch (e) { u.obs = {}; }
         const total = u.comps.length * 3, hechos = u.comps.reduce((a, c) => a + [1, 2, 3].filter(s => u.entradas.some(e => e.comp === c.id && e.seg === s)).length, 0);
         u.total = total; u.hechos = hechos; u.pct = total ? Math.round(hechos / total * 100) : 0;
         this.docentes.push(u);
@@ -1511,7 +1543,7 @@ const Rectoria = {
       al = `<div class="aviso-card ${prox.dias <= 7 ? "urg" : ""}"><h4>⏰ Faltan ${prox.dias} días para el S${prox.s} (${fmtFecha(prox.f)})</h4>${atrasados.length ? `Docentes con competencias sin registrar en S${prox.s}: <b>${atrasados.map(d => esc(d.doc || d.email)).join(", ")}</b>` : "Todos los docentes tienen registros para este seguimiento."}</div>`;
     }
     $("r_alertas").innerHTML = al;
-    $("r_lista").innerHTML = (this.docentes.length ? this.docentes.map((d, i) => `<div class="docente-row"><div class="info"><b>${esc(d.doc || "(sin nombre)")}</b><span class="hint">${esc(d.email || "")} · ${d.hechos} de ${d.total} seguimientos · ${d.entradas.length} registros</span><div class="mini-barra"><div style="width:${d.pct}%"></div></div></div><span class="pill ${d.pct >= 100 ? "ok" : d.pct ? "ok" : "no"}">${d.pct}%</span><button class="btn sec" data-ver="${i}">Ver</button></div>`).join("") : '<p class="hint">Todavía no ha entrado ningún docente.</p>')
+    $("r_lista").innerHTML = (this.docentes.length ? this.docentes.map((d, i) => `<div class="docente-row"><div class="info"><b>${esc(d.doc || "(sin nombre)")}</b><span class="hint">${esc(d.email || "")} · ${d.hechos} de ${d.total} seguimientos · ${d.entradas.length} registros · 💬 ${Object.values(d.obs || {}).filter(o => o && o.texto).length}</span><div class="mini-barra"><div style="width:${d.pct}%"></div></div></div><span class="pill ${d.pct >= 100 ? "ok" : d.pct ? "ok" : "no"}">${d.pct}%</span><button class="btn sec" data-ver="${i}">Ver</button></div>`).join("") : '<p class="hint">Todavía no ha entrado ningún docente.</p>')
       + (sinEntrar.length ? `<p class="hint" style="margin-top:10px">Autorizados que aún no han entrado: ${sinEntrar.map(esc).join(", ")}</p>` : "");
     $("r_lista").querySelectorAll("[data-ver]").forEach(b => b.onclick = () => this.ver(+b.dataset.ver));
   },
@@ -1521,14 +1553,35 @@ const Rectoria = {
     let h = `<h3>${esc(d.doc || d.email)}</h3><p class="hint">${esc(d.email || "")} · ${esc(d.areaens || "")} · C.C. ${esc(d.cc || "")}</p>
       <div class="acciones"><button class="btn" id="r_zip">📦 Descargar su carpeta (.zip)</button><button class="btn sec" id="r_anexos">📄 Sus Anexos 5 y 2</button></div><div class="hint" id="r_estado" style="margin-top:8px"></div>
       <table class="estado" style="margin-top:12px"><tr><th style="text-align:left">Competencia</th><th>S1</th><th>S2</th><th>S3</th></tr>`;
-    d.comps.forEach(c => { h += `<tr><td class="nom"><b>${esc(c.competencia)}</b><br><span class="hint">${esc(c.evidencia || "")}</span></td>` + [1, 2, 3].map(s => { const n = d.entradas.filter(e => e.comp === c.id && e.seg === s).length; return `<td><span class="pill ${n ? "ok" : "no"}">${n ? "✓ " + n : "0"}</span></td>`; }).join("") + "</tr>"; });
-    h += `</table>`;
+    d.comps.forEach(c => { h += `<tr><td class="nom"><b>${esc(c.competencia)}</b><br><span class="hint">${esc(c.evidencia || "")}</span></td>` + [1, 2, 3].map(s => { const n = d.entradas.filter(e => e.comp === c.id && e.seg === s).length, o = (d.obs || {})[c.id + "_" + s]; return `<td data-oc="${c.id}" data-os="${s}"><span class="pill ${n ? "ok" : "no"}">${n ? "✓ " + n : "0"}${o && o.texto ? '<span class="burb">💬</span>' : ""}</span></td>`; }).join("") + "</tr>"; });
+    h += `</table><p class="hint" style="margin-top:6px">👆 Toca un seguimiento (S1, S2 o S3) de una competencia para revisarlo y escribir la observación.</p><div id="r_obs_editor"></div><h4 style="margin:16px 0 0">Registros</h4>`;
     [...d.entradas].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || "")).forEach(e => { const c = d.comps.find(x => x.id === e.comp);
       h += `<div class="entrada"><h4>${esc(e.titulo || "(sin título)")}</h4><div class="meta">${esc(c ? c.competencia : "")} · S${e.seg} · ${fmtFecha(e.fecha)} · ${e.fotos.length} foto(s)</div><div>${esc(e.desc || "")}</div><div class="mini">${e.fotos.map(f => `<img src="${f.thumb || ""}">`).join("")}</div></div>`; });
     box.innerHTML = h; box.scrollIntoView({ behavior: "smooth" });
-    const conDocente = async fn => { const c0 = CFG, e0 = ENTRADAS; CFG = this.cfgDe(d); ENTRADAS = d.entradas; try { await fn(); } finally { CFG = c0; ENTRADAS = e0; } };
+    box.querySelectorAll("[data-oc]").forEach(td => td.style.cursor = "pointer");
+    box.querySelectorAll("[data-oc]").forEach(td => td.onclick = () => { box.querySelectorAll("td.sel").forEach(x => x.classList.remove("sel")); td.classList.add("sel"); this.editorObs(i, td.dataset.oc, +td.dataset.os); });
+    const conDocente = async fn => { const c0 = CFG, e0 = ENTRADAS, o0 = OBS; CFG = this.cfgDe(d); ENTRADAS = d.entradas; OBS = d.obs || {}; try { await fn(); } finally { CFG = c0; ENTRADAS = e0; OBS = o0; } };
     $("r_zip").onclick = async () => { $("r_estado").textContent = "Generando… puede tardar si hay muchas fotos."; try { await conDocente(() => generarZip()); $("r_estado").textContent = "✅ Listo"; } catch (er) { $("r_estado").textContent = "Error: " + er.message; } };
     $("r_anexos").onclick = async () => { try { await conDocente(async () => { const z = new JSZip(), n = carpetaDe(CFG.doc); z.file(`ANEXO 5 ${CFG.anio} ${n}.docx`, await anexo5Blob()); z.file(`ANEXO 2 ${CFG.anio} ${n}.docx`, await anexo2Blob(true)); descargar(await z.generateAsync({ type: "blob" }), `ANEXOS ${CFG.anio} ${n}.zip`); }); } catch (er) { toast("Error: " + er.message, 5000); } };
+  },
+  editorObs(i, compId, s) {
+    const d = this.docentes[i], c = d.comps.find(x => x.id === compId), key = compId + "_" + s, o = (d.obs || {})[key] || {};
+    const es = d.entradas.filter(e => e.comp === compId && e.seg === s);
+    const ed = $("r_obs_editor");
+    ed.innerHTML = `<div class="obs" style="--c:var(--pri);margin-top:12px"><div class="oh"><b>✍️ ${esc(c.competencia)} · S${s}</b><span class="hint">${es.length} registro(s)</span></div>
+      ${c["s" + s] ? `<div class="hint" style="margin-bottom:6px"><b>Debía entregar:</b> ${esc(c["s" + s])}</div>` : ""}
+      ${es.map(e => `<div class="entrada" style="margin-top:6px"><b>${esc(e.titulo || "(sin título)")}</b> <span class="hint">${fmtFecha(e.fecha)}</span><div style="font-size:14px">${esc(e.desc || "")}</div><div class="mini">${e.fotos.map(f => `<img src="${f.thumb || ""}">`).join("")}</div></div>`).join("") || '<p class="hint">El docente aún no tiene registros en este seguimiento.</p>'}
+      <label>Valoración</label><select id="ro_val"><option value="">Sin valorar</option>${VALORACIONES.map(v => `<option ${o.valoracion === v ? "selected" : ""}>${v}</option>`).join("")}</select>
+      <label>Observación para el docente</label><textarea id="ro_txt" rows="4" placeholder="Escribe aquí la retroalimentación: aspectos positivos, qué debe mejorar o completar…">${esc(o.texto || "")}</textarea>
+      <div class="acciones"><button class="btn" id="ro_guardar">💾 Guardar observación</button>${o.texto ? '<button class="btn peligro" id="ro_borrar">Borrar</button>' : ""}</div></div>`;
+    ed.scrollIntoView({ behavior: "smooth", block: "center" });
+    const guardar = async (texto, valoracion) => {
+      const obj = { texto, valoracion, fecha: new Date().toISOString(), ts: Date.now(), por: CFG.eva || Store.email };
+      try { await Store.saveObs(d.uid, String(Store.global.anio || CFG.anio), key, obj); d.obs = { ...(d.obs || {}), [key]: obj }; toast(texto ? "✅ Observación guardada. El docente la verá al entrar." : "Observación borrada"); this.ver(i); this.pintar(); }
+      catch (er) { toast("No se pudo guardar: " + er.message + ". Revisa que las reglas de Firestore estén actualizadas.", 7000); }
+    };
+    $("ro_guardar").onclick = () => { const t = $("ro_txt").value.trim(), v = $("ro_val").value; if (!t && !v) return toast("Escribe la observación o elige una valoración."); guardar(t || "(Sin comentario)", v); };
+    const bb = $("ro_borrar"); if (bb) bb.onclick = () => { if (confirm("¿Borrar esta observación?")) guardar("", ""); };
   },
   async guardar() {
     const g = { anio: $("g_anio").value.trim() };
@@ -1538,13 +1591,32 @@ const Rectoria = {
       await Store.db.doc("config/global").set(g, { merge: true }); Store.global = { ...Store.global, ...g };
       const anioCambio = g.anio !== CFG.anio;
       CAMPOS_GLOBALES.forEach(k => CFG[k] = g[k]);
-      if (anioCambio) { CFG = await Store.loadConfig(); ENTRADAS = await Store.list(); llenarSelectComp(); }
+      if (anioCambio) { CFG = await Store.loadConfig(); ENTRADAS = await Store.list(); try { OBS = await Store.loadObs(); } catch (e) { OBS = {}; } llenarSelectComp(); }
       pintarSub(); pintarAvisos(); toast("✅ Guardado. Los docentes verán estos datos."); this.cargar();
     } catch (er) { toast("No se pudo guardar: " + er.message, 6000); }
   },
 };
 $("r_actualizar").onclick = () => Rectoria.cargar();
 $("g_guardar").onclick = () => Rectoria.guardar();
+
+// =================================================================== OBSERVACIONES DE LA RECTORÍA
+const VALORACIONES = ["Sobresaliente", "Satisfactorio", "No satisfactorio"];
+const colorVal = v => v === "Sobresaliente" ? "var(--ok)" : v === "No satisfactorio" ? "var(--no)" : "var(--pri)";
+function obsHTML(compId, s, o, comps = CFG.comps, nueva = false) {
+  const c = comps.find(x => x.id === compId);
+  return `<div class="obs" style="--c:${colorVal(o.valoracion)}"><div class="oh"><b>💬 ${esc(c ? c.competencia : "Competencia")} · S${s}</b>${o.valoracion ? `<span class="val ${o.valoracion.split(" ")[0]}">${esc(o.valoracion)}</span>` : ""}${nueva ? '<span class="nueva">NUEVA</span>' : ""}<span class="hint">${o.fecha ? fmtFecha(o.fecha.slice(0, 10)) : ""}${o.por ? " · " + esc(o.por) : ""}</span></div><div class="ot">${esc(o.texto || "")}</div></div>`;
+}
+function obsVisto() { try { return +localStorage.getItem("obs_visto_" + (Store.uid || "local")) || 0; } catch (e) { return 0; } }
+function marcarObsVisto() { try { localStorage.setItem("obs_visto_" + (Store.uid || "local"), String(Date.now())); } catch (e) {} }
+function obsNuevas() { const v = obsVisto(); return Object.values(OBS).filter(o => o && o.texto && (o.ts || 0) > v).length; }
+function pintarObsDocente() {
+  const box = $("obs_docente"); if (!box) return;
+  const items = Object.entries(OBS).filter(([, o]) => o && o.texto).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+  if (!items.length) { box.innerHTML = Store.nube && !Store.rectora ? `<div class="card"><h3>💬 Observaciones de la rectoría</h3><p class="hint">Aún no hay observaciones. Cuando la rectoría revise tus evidencias, aparecerán aquí.</p></div>` : ""; return; }
+  const v = obsVisto();
+  box.innerHTML = `<div class="card"><h3>💬 Observaciones de la rectoría (${items.length})</h3>${items.map(([k, o]) => { const [cid, s] = k.split("_"); return obsHTML(cid, s, o, CFG.comps, (o.ts || 0) > v); }).join("")}</div>`;
+  setTimeout(() => { marcarObsVisto(); pintarResumen(); }, 1500);
+}
 
 // =================================================================== AVISOS DE ENTREGA
 function proximaEntrega(src = CFG) {
@@ -1562,20 +1634,23 @@ function pintarResumen() {
   $("stats").innerHTML = st("estado", "#34D399", "#059669", "📈", pct + "%", `avance · ${hechos}/${total}`) + st("estado", "#22D3EE", "#3B82F6", "📝", ENTRADAS.length, "registros") + st("estado", "#FBBF24", "#F97316", "🖼️", fotos, "fotos") +
     st("planear", p && p.dias <= 7 ? "#FB7185" : "#F472B6", p && p.dias <= 7 ? "#E11D48" : "#A855F7", "⏰", p ? p.dias : "—", p ? `días para el S${p.s}` : "sin fechas");
   $("stats").querySelectorAll("[data-ir]").forEach(x => x.onclick = () => irA(x.dataset.ir));
-  $("b_estado").textContent = `${pct}% completo`;
+  const nuevas = obsNuevas(); $("b_estado").textContent = nuevas ? `💬 ${nuevas} observación${nuevas > 1 ? "es" : ""} nueva${nuevas > 1 ? "s" : ""}` : `${pct}% completo`;
   const faltan = total - hechos; $("b_generar").textContent = faltan ? `Faltan ${faltan}` : "¡Todo listo! ✓";
   $("b_planear").textContent = incompletas ? `${incompletas} por completar` : "Anexos 5 y 2 ✓";
   $("b_registrar").textContent = p && p.dias <= 20 ? `⏰ ${p.dias} días S${p.s}` : "Nueva evidencia";
 }
+function enlazarObs() { const ob = $("av_obs"); if (ob) ob.onclick = () => irA("estado"); }
 function pintarAvisos() {
   const A = $("avisos"); if (!CFG) return; pintarResumen();
+  const nuevasObs = obsNuevas(), avisoObs = nuevasObs ? `<div class="aviso-card info" style="cursor:pointer" id="av_obs"><h4>💬 Tienes ${nuevasObs} observación${nuevasObs > 1 ? "es" : ""} nueva${nuevasObs > 1 ? "s" : ""} de la rectoría</h4><span class="hint">Toca aquí para verlas en Mis evidencias.</span></div>` : "";
   const p = proximaEntrega();
-  if (!p) { A.innerHTML = (CFG.s1 || CFG.s2 || CFG.s3) ? "" : `<div class="aviso-card info"><h4>🗓️ Sin fechas de entrega</h4>Define las fechas de S1, S2 y S3 en <b>Planear año</b> para recibir avisos.</div>`; return; }
+  if (!p) { A.innerHTML = avisoObs + ((CFG.s1 || CFG.s2 || CFG.s3) ? "" : `<div class="aviso-card info"><h4>🗓️ Sin fechas de entrega</h4>Define las fechas de S1, S2 y S3 en <b>Planear año</b> para recibir avisos.</div>`); return enlazarObs(); }
   const falta = faltantes(p.s);
-  if (p.dias > 20) { A.innerHTML = `<div class="aviso-card info"><h4>🗓️ Próxima entrega: S${p.s} el ${fmtFecha(p.f)} (en ${p.dias} días)</h4><span class="hint">Te avisaré 20 días antes. ${falta.length ? `Te faltan ${falta.length} competencias por registrar en S${p.s}.` : "Ya tienes registros en todas las competencias."}</span></div>`; return; }
-  A.innerHTML = `<div class="aviso-card ${p.dias <= 7 ? "urg" : ""}"><h4>⏰ ${p.dias === 0 ? "¡Hoy es la entrega" : `Faltan ${p.dias} días para la entrega`} del S${p.s} (${fmtFecha(p.f)})${p.dias === 0 ? "!" : ""}</h4>
+  if (p.dias > 20) { A.innerHTML = avisoObs + `<div class="aviso-card info"><h4>🗓️ Próxima entrega: S${p.s} el ${fmtFecha(p.f)} (en ${p.dias} días)</h4><span class="hint">Te avisaré 20 días antes. ${falta.length ? `Te faltan ${falta.length} competencias por registrar en S${p.s}.` : "Ya tienes registros en todas las competencias."}</span></div>`; return enlazarObs(); }
+  A.innerHTML = avisoObs + `<div class="aviso-card ${p.dias <= 7 ? "urg" : ""}"><h4>⏰ ${p.dias === 0 ? "¡Hoy es la entrega" : `Faltan ${p.dias} días para la entrega`} del S${p.s} (${fmtFecha(p.f)})${p.dias === 0 ? "!" : ""}</h4>
     ${falta.length ? `Te falta registrar en S${p.s}:<ul>${falta.map(c => `<li><b>${esc(c.competencia)}</b>${c["s" + p.s] ? ` — <span class="hint">${esc(c["s" + p.s]).slice(0, 140)}${c["s" + p.s].length > 140 ? "…" : ""}</span>` : ""}</li>`).join("")}</ul>
     <div class="acciones"><button class="btn ia" id="av_sug">✨ ¿Qué puedo hacer?</button></div><div id="av_res"></div>` : `✅ Ya tienes registros en todas las competencias para el S${p.s}. ¡Revisa que estén completos!`}</div>`;
+  const ob = $("av_obs"); if (ob) ob.onclick = () => irA("estado");
   const b = $("av_sug"); if (b) b.onclick = () => sugerirQueHacer(p, falta);
   notificarSiToca(p, falta);
 }
@@ -1635,6 +1710,7 @@ $("p_ics").onclick = () => {
   CFG.comps.forEach(c => { const m = (c.competencia || "").match(/\s*\((\d+(?:[.,]\d+)?)%\)/); if (m) { c.competencia = c.competencia.slice(0, m.index); if (!c.pct) c.pct = m[1]; } if (!c.pct) c.pct = c.tipo === "Comportamental" ? "10" : "8.75"; if (c.soporte === undefined) c.soporte = "Informe escrito con registro fotográfico en cada uno de los seguimientos."; });
   if (!Store.nube) CFG.comps.forEach(c => { const d = COMPETENCIAS_POR_DEFECTO.find(x => x.id === c.id && x.competencia === c.competencia); if (d) ["s1", "s2", "s3"].forEach(k => { if (!c[k]) c[k] = d[k]; }); });
   ENTRADAS = await Store.list();
+  try { OBS = await Store.loadObs(); } catch (e) { OBS = {}; }
   if (Store.nube) {
     const soloLectura = !Store.rectora;
     ["c_anio", "c_s1", "c_s2", "c_s3", "c_inst", "c_dane", "c_ciudad", "c_sec", "c_eva", "c_evacc", "c_evacargo"].forEach(id => { $(id).readOnly = soloLectura; });
@@ -1643,7 +1719,7 @@ $("p_ics").onclick = () => {
   }
   llenarSelectComp(); pintarSub(); limpiarForm(); pintarAvisos();
   if (Store.rectora) irA("rectoria");
-  if ("Notification" in window && Notification.permission === "granted") registrarSW();
+  registrarSW();
   if (!window.docx || !window.JSZip) toast("Falta la carpeta lib: sube también lib/docx.js y lib/jszip.min.js", 6000);
 })();
 </script>

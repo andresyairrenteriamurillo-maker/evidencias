@@ -831,7 +831,7 @@ function pintarIA() { const c = IA.cfg(); $("ia_prov").value = c.prov || "gemini
 function leerIA() { const c = IA.cfg(); const n = { prov: $("ia_prov").value, key: $("ia_key").value.trim(), model: $("ia_model").value.trim() }; if (n.prov !== c.prov || n.model !== c.model) n.auto = ""; else n.auto = c.auto || ""; IA.save(n); return n; }
 $("ia_guardar").onclick = () => { leerIA(); toast("✅ Clave guardada en este dispositivo"); };
 $("ia_probar").onclick = async () => {
-  leerIA(); $("ia_estado").innerHTML = '<span class="gira">⏳</span> Probando…';
+  leerIA(); $("ia_estado").innerHTML = '<span class="gira">⏳</span> Probando…'; window.__iaEstado = m => $("ia_estado").innerHTML = '<span class="gira">⏳</span> ' + esc(m);
   try { const r = await llamarIA("Responde solo con este JSON: {\"ok\": true}", []); $("ia_estado").textContent = "✅ Funciona" + (r.modelo ? " (modelo: " + r.modelo + ")" : ""); }
   catch (er) { $("ia_estado").textContent = "❌ " + er.message; }
 };
@@ -845,20 +845,26 @@ async function fotoA64(blob, max = 1024) {
     return cv.toDataURL("image/jpeg", 0.8).split(",")[1];
   } finally { URL.revokeObjectURL(url); }
 }
-async function modeloGemini(key) {
-  const c = IA.cfg(); if (c.model) return c.model; if (c.auto) return c.auto;
-  let elegido = "gemini-flash-latest";
+async function modelosGemini(key) {
+  const c = IA.cfg(); if (c.model) return [c.model];
+  let lista = [];
   try {
     const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000", { headers: { "x-goog-api-key": key } });
     if (r.ok) {
       const d = await r.json();
-      const cands = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent")).map(m => m.name.replace("models/", ""))
-        .map(n => { const x = n.match(/^gemini-(\d+(?:\.\d+)?)-flash$/); return x ? { n, v: parseFloat(x[1]) } : null; }).filter(Boolean).sort((a, b) => b.v - a.v);
-      if (cands.length) elegido = cands[0].n;
+      const nombres = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent")).map(m => m.name.replace("models/", ""));
+      const ver = (n, re) => { const x = n.match(re); return x ? parseFloat(x[1]) : null; };
+      const flash = nombres.map(n => ({ n, v: ver(n, /^gemini-(\d+(?:\.\d+)?)-flash$/) })).filter(x => x.v !== null).sort((a, b) => b.v - a.v).map(x => x.n);
+      const lite = nombres.map(n => ({ n, v: ver(n, /^gemini-(\d+(?:\.\d+)?)-flash-lite$/) })).filter(x => x.v !== null).sort((a, b) => b.v - a.v).map(x => x.n);
+      lista = [...flash.slice(0, 3), ...lite.slice(0, 2)];
+      ["gemini-flash-latest", "gemini-flash-lite-latest"].forEach(n => { if (nombres.includes(n)) lista.push(n); });
     } else if (r.status === 400 || r.status === 403) { const t = await r.text(); throw new Error("La clave no es válida o no tiene permiso. " + t.slice(0, 160)); }
   } catch (er) { if (/clave/.test(er.message)) throw er; }
-  IA.save({ ...IA.cfg(), auto: elegido }); return elegido;
+  if (!lista.length) lista = ["gemini-flash-latest", "gemini-flash-lite-latest"];
+  if (c.auto && lista.includes(c.auto)) lista = [c.auto, ...lista.filter(x => x !== c.auto)];
+  return [...new Set(lista)];
 }
+const espera = ms => new Promise(r => setTimeout(r, ms));
 async function llamarIA(prompt, imagenes) {
   const c = IA.cfg();
   if (!c.key) throw new Error("Falta la clave de IA. Ve a ⚙️ Configuración → Inteligencia artificial.");
@@ -871,18 +877,27 @@ async function llamarIA(prompt, imagenes) {
     if (!r.ok) throw new Error("Claude respondió con error " + r.status + ": " + ((d.error && d.error.message) || ""));
     return { texto: (d.content || []).filter(x => x.type === "text").map(x => x.text).join(""), modelo };
   }
-  const modelo = await modeloGemini(c.key);
+  const modelos = await modelosGemini(c.key);
   const parts = [{ text: prompt }, ...imagenes.map(d => ({ inline_data: { mime_type: "image/jpeg", data: d } }))];
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": c.key },
-    body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.4, responseMimeType: "application/json" } }) });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    if (r.status === 404 && !c.model) IA.save({ ...IA.cfg(), auto: "" });
-    if (r.status === 429) throw new Error("Se alcanzó el límite gratuito de Gemini por ahora. Espera un minuto e intenta de nuevo.");
-    throw new Error("Gemini respondió con error " + r.status + ": " + ((d.error && d.error.message) || ""));
+  let ultimo = "";
+  for (const modelo of modelos) {
+    for (let intento = 0; intento < 2; intento++) {
+      if (window.__iaEstado) window.__iaEstado(`Usando ${modelo}${intento ? " (reintentando)" : ""}…`);
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": c.key },
+        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.4, responseMimeType: "application/json" } }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        IA.save({ ...IA.cfg(), auto: modelo });
+        const cand = (d.candidates || [])[0];
+        return { texto: cand && cand.content ? (cand.content.parts || []).map(p => p.text || "").join("") : "", modelo };
+      }
+      ultimo = `error ${r.status}: ${(d.error && d.error.message) || ""}`;
+      if (r.status === 400 || r.status === 401 || r.status === 403) throw new Error("Gemini respondió con " + ultimo);
+      if (r.status === 503 || r.status === 500 || r.status === 429) { await espera(intento ? 4000 : 2000); continue; }
+      break; // 404 u otro: pasar al siguiente modelo
+    }
   }
-  const cand = (d.candidates || [])[0];
-  return { texto: cand && cand.content ? (cand.content.parts || []).map(p => p.text || "").join("") : "", modelo };
+  throw new Error("Todos los modelos de Gemini están ocupados en este momento. Espera unos minutos e intenta de nuevo. (Último " + ultimo + ")");
 }
 function extraerJSON(t) { t = (t || "").replace(/```json|```/g, "").trim(); const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < 0) throw new Error("La IA no devolvió un formato válido. Intenta de nuevo."); return JSON.parse(t.slice(a, b + 1)); }
 
@@ -891,7 +906,7 @@ $("f_ia").onclick = async () => {
   const c = compById($("f_comp").value), seg = +document.querySelector("input[name=f_seg]:checked").value;
   const notas = $("f_desc").value.trim(), tit = $("f_titulo").value.trim();
   if (!notas && !tit && !FOTOS_FORM.length) { err.style.display = "block"; err.textContent = "Agrega al menos fotos o unas notas cortas de lo que se hizo."; return; }
-  btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…';
+  btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…'; window.__iaEstado = null;
   try {
     const fotos = FOTOS_FORM.slice(0, 8);
     const imgs = []; for (const f of fotos) imgs.push(await fotoA64(f.blob));

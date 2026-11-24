@@ -27,6 +27,14 @@ Al final generas un .zip con una carpeta por competencia y un Word por evidencia
 - **Mis evidencias**: muestra el avance del año. En rojo están los seguimientos que aún no tienen nada.
 - **Generar Word**: descarga el .zip con todas las carpetas listas para entregar.
 
+## 👥 Varios docentes y rectoría
+
+La página puede funcionar para todo el colegio: cada docente entra con su cuenta de Google, nadie ve las evidencias de los demás y la rectora ve a todos. Para activarlo sigue **[GUIA_FIREBASE.md](GUIA_FIREBASE.md)**. Mientras `firebase-config.js` tenga `null`, la página funciona en modo individual.
+
+## ⏰ Avisos de entrega
+
+Cuando falten 20 días o menos para S1, S2 o S3, la página avisa qué competencias faltan y sugiere con IA qué hacer. En **Planear año** puedes agregar las fechas al calendario del celular (alarmas 20, 7 y 1 día antes) y activar las notificaciones.
+
 ## 🗓️ Planear el año (enero)
 
 En la pestaña **Planear año** defines con tu evaluador(a) las competencias del año:
@@ -34,7 +42,7 @@ En la pestaña **Planear año** defines con tu evaluador(a) las competencias del
 1. Escribe el año y las fechas de S1, S2 y S3.
 2. Revisa la lista: deben estar las 8 funcionales y 3 comportamentales, y los porcentajes deben sumar 100%. La sección **Revisión** te avisa qué falta.
 3. Abre cada competencia, escribe tu idea en pocas palabras y toca **✨ Sugerir con IA**. Redacta la contribución, el criterio y los descriptores S1, S2 y S3. Ajusta el texto.
-4. Toca **💾 Guardar planeación** y luego **📦 Descargar Anexo 5 y Anexo 2** para llevarlos a firmar.
+4. Toca **💾 Guardar planeación** y **📄 Descargar Anexo 5 (Word)** para llevarlo a firmar.
 5. Para pasar a otro año usa **🔄 Empezar año nuevo** (descarga antes la copia de seguridad).
 
 ## ✨ Redactar con IA

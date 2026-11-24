@@ -109,6 +109,22 @@
   .modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center; z-index:30; padding:12px; }
   .modal.on { display:flex; } .modal .card { width:100%; max-width:560px; max-height:90vh; overflow:auto; margin:0; }
   @media (min-width:600px) { .modal { align-items:center; } }
+  #login { position:fixed; inset:0; z-index:40; background:var(--head); display:none; align-items:center; justify-content:center; padding:20px; }
+  #login.on { display:flex; } #login .card { max-width:420px; width:100%; text-align:center; }
+  #login .logo { margin:0 auto 10px; width:64px; height:64px; font-size:32px; background:var(--pri-suave); }
+  .usuario { font-size:12px; opacity:.9; display:none; align-items:center; gap:6px; }
+  .usuario button { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:3px 8px; font-size:12px; cursor:pointer; }
+  .aviso-card { border-radius:var(--radio); padding:14px 16px; margin-bottom:16px; border:1px solid var(--aviso-bd); background:var(--aviso-bg); box-shadow:var(--sombra); }
+  .aviso-card.urg { border-color:color-mix(in srgb,var(--no) 45%,transparent); background:var(--no-bg); }
+  .aviso-card.info { border-color:var(--borde); background:var(--card); }
+  .aviso-card h4 { margin:0 0 4px; font-size:15px; }
+  .aviso-card ul { margin:6px 0 0 18px; padding:0; font-size:14px; }
+  .sug { background:var(--card); border:1px solid var(--borde); border-radius:12px; padding:10px 12px; margin-top:10px; font-size:14px; }
+  .docente-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--borde); }
+  .docente-row:last-child { border-bottom:0; }
+  .docente-row .info { flex:1; min-width:0; } .docente-row .info b { display:block; }
+  .mini-barra { height:8px; background:var(--borde); border-radius:6px; overflow:hidden; margin-top:6px; } .mini-barra > div { height:100%; background:var(--ok); }
+  input[readonly] { opacity:.7; }
   @media (max-width:520px) { .row { flex-direction:column; gap:0; } nav button { padding:10px 10px 12px; font-size:13px; } }
 </style>
 </head>
@@ -116,7 +132,7 @@
 <header>
   <div class="top">
     <div class="logo">📁</div>
-    <div class="titulos"><h1>Mis Evidencias Docentes</h1><div class="sub" id="subtitulo"></div></div>
+    <div class="titulos"><h1>Mis Evidencias Docentes</h1><div class="sub" id="subtitulo"></div><div class="usuario" id="usuario"><span id="usuario_txt"></span><button id="salir">Salir</button></div></div>
     <button id="tema" title="Cambiar modo día / noche">🌙</button>
   </div>
   <nav>
@@ -124,10 +140,12 @@
     <button data-tab="estado">📊 Mis evidencias</button>
     <button data-tab="generar">📄 Generar Word</button>
     <button data-tab="planear">🗓️ Planear año</button>
+    <button data-tab="rectoria" id="tab_rectoria" style="display:none">🏫 Rectoría</button>
     <button data-tab="config">⚙️ Configuración</button>
   </nav>
 </header>
 <main>
+<div id="avisos"></div>
 
 <!-- ============ REGISTRAR ============ -->
 <section id="registrar" class="on">
@@ -232,6 +250,9 @@
       <div><label>Fecha S2</label><input type="date" id="c_s2"></div>
       <div><label>Fecha S3</label><input type="date" id="c_s3"></div>
     </div>
+    <p class="hint" id="p_fechas_nota" style="display:none">El año y las fechas los define la rectora.</p>
+    <div class="acciones"><button class="btn sec" id="p_ics">📅 Agregar fechas a mi calendario</button><button class="btn sec" id="p_notif">🔔 Activar avisos</button></div>
+    <p class="hint">El calendario de tu celular te avisará 20, 7 y 1 día antes de cada entrega.</p>
   </div>
   <div class="card">
     <h3>✅ Revisión</h3>
@@ -296,6 +317,38 @@
     <div class="hint" id="ia_estado" style="margin-top:8px"></div>
   </div>
 </section>
+<!-- ============ RECTORÍA ============ -->
+<section id="rectoria">
+  <div class="card">
+    <h3>🏫 Docentes</h3>
+    <p>Aquí ves el avance de cada docente en el año. Toca <b>Ver</b> para revisar sus evidencias o descargar su carpeta.</p>
+    <div id="r_alertas"></div>
+    <div id="r_lista"><p class="hint">Cargando…</p></div>
+    <div class="acciones"><button class="btn sec" id="r_actualizar">🔄 Actualizar</button></div>
+  </div>
+  <div class="card" id="r_detalle" style="display:none"></div>
+  <div class="card">
+    <h3>⚙️ Año, fechas e institución</h3>
+    <p>Estos datos los ven todos los docentes.</p>
+    <div class="row"><div><label>Año</label><input type="text" id="g_anio"></div><div><label>Fecha S1</label><input type="date" id="g_s1"></div></div>
+    <div class="row"><div><label>Fecha S2</label><input type="date" id="g_s2"></div><div><label>Fecha S3</label><input type="date" id="g_s3"></div></div>
+    <div class="row"><div><label>Institución</label><input type="text" id="g_inst"></div><div><label>Código DANE</label><input type="text" id="g_dane"></div></div>
+    <div class="row"><div><label>Ciudad</label><input type="text" id="g_ciudad"></div><div><label>Secretaría de Educación</label><input type="text" id="g_sec"></div></div>
+    <div class="row"><div><label>Nombre de la rectora (evaluadora)</label><input type="text" id="g_eva"></div><div><label>Cédula</label><input type="text" id="g_evacc"></div></div>
+    <label>Cargo</label><input type="text" id="g_evacargo">
+    <label>Correos de los docentes autorizados <span class="hint">(uno por línea; solo ellos pueden entrar)</span></label>
+    <textarea id="g_docentes" rows="6" placeholder="docente1@gmail.com&#10;docente2@gmail.com"></textarea>
+    <button class="btn grande" id="g_guardar" style="margin-top:12px">💾 Guardar</button>
+  </div>
+</section>
+<div id="login"><div class="card">
+  <div class="logo">📁</div>
+  <h3 style="margin:0 0 4px">Mis Evidencias Docentes</h3>
+  <p id="login_inst"></p>
+  <p id="login_msg">Entra con tu cuenta de Google para registrar tus evidencias. Solo tú y la rectora pueden verlas.</p>
+  <button class="btn grande" id="login_btn">Entrar con Google</button>
+  <button class="btn sec grande" id="login_salir" style="display:none; margin-top:10px">Usar otra cuenta</button>
+</div></div>
 <div class="modal" id="modal_gpt"><div class="card">
   <h3>💬 Usar mi ChatGPT</h3>
   <p><b>1.</b> Ya copié las instrucciones. <a href="#" id="mg_copiar">Copiar de nuevo</a></p>
@@ -307,6 +360,7 @@
 </main>
 <div class="toast" id="toast"></div>
 
+<script src="firebase-config.js"></script>
 <script src="lib/jszip.min.js"></script>
 <script src="lib/docx.js"></script>
 <script>
@@ -532,6 +586,8 @@ function irA(tab) {
   if (tab === "generar") pintarFaltantes();
   if (tab === "config") { pintarConfig(); pintarIA(); }
   if (tab === "planear") pintarConfig();
+  if (tab === "rectoria") Rectoria.cargar();
+  $("avisos").style.display = (tab === "registrar" || tab === "estado") ? "block" : "none";
   window.scrollTo(0, 0);
 }
 
@@ -545,7 +601,9 @@ async function reducirFoto(file) {
     const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
     cv.getContext("2d").drawImage(img, 0, 0, w, h);
     const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.8));
-    return { blob, w, h, caption: "" };
+    const tk = 240 / Math.max(w, h), tc = document.createElement("canvas"); tc.width = Math.round(w * tk); tc.height = Math.round(h * tk);
+    tc.getContext("2d").drawImage(cv, 0, 0, tc.width, tc.height);
+    return { blob, w, h, caption: "", thumb: tc.toDataURL("image/jpeg", 0.6) };
   } finally { URL.revokeObjectURL(url); }
 }
 
@@ -563,7 +621,7 @@ function pintarFotosForm() {
   const add = cont.querySelector(".addfoto");
   FOTOS_FORM.forEach((f, i) => {
     const d = document.createElement("div"); d.className = "foto";
-    d.innerHTML = `<img src="${URL.createObjectURL(f.blob)}"><button class="x" title="Quitar">×</button><input type="text" placeholder="¿Qué muestra la foto?" value="${esc(f.caption)}">`;
+    d.innerHTML = `<img src="${f.blob ? URL.createObjectURL(f.blob) : (f.thumb || "")}"><button class="x" title="Quitar">×</button><input type="text" placeholder="¿Qué muestra la foto?" value="${esc(f.caption)}">`;
     d.querySelector("input").oninput = e => f.caption = e.target.value;
     d.querySelector(".x").onclick = () => { FOTOS_FORM.splice(i, 1); pintarFotosForm(); };
     cont.insertBefore(d, add);
@@ -591,11 +649,13 @@ $("f_guardar").onclick = async () => {
     id: $("f_id").value || ("e" + Date.now() + Math.random().toString(36).slice(2, 6)),
     comp: $("f_comp").value, seg: +document.querySelector("input[name=f_seg]:checked").value,
     fecha: $("f_fecha").value, titulo: $("f_titulo").value.trim(), desc, acts: $("f_acts").value.trim(), res: $("f_res").value.trim(),
-    fotos: FOTOS_FORM.map(f => ({ blob: f.blob, w: f.w, h: f.h, caption: f.caption.trim() })),
+    fotos: FOTOS_FORM.map(f => ({ blob: f.blob, fid: f.fid, uid: f.uid, thumb: f.thumb, w: f.w, h: f.h, caption: (f.caption || "").trim() })),
     creado: Date.now()
   };
-  try { await DB.put(e); } catch (er) { return toast("Error al guardar: " + er.message, 5000); }
-  ENTRADAS = await DB.all();
+  $("f_guardar").disabled = true; $("f_guardar").textContent = "⏳ Guardando…";
+  try { await Store.save(e); } catch (er) { $("f_guardar").disabled = false; $("f_guardar").textContent = "💾 Guardar evidencia"; return toast("Error al guardar: " + er.message, 6000); }
+  $("f_guardar").disabled = false;
+  ENTRADAS = await Store.list(); pintarAvisos();
   const c = compById(e.comp);
   limpiarForm();
   toast(`✅ Guardado en ${c ? c.competencia : ""} · S${e.seg}`);
@@ -612,7 +672,7 @@ function editar(id) {
 }
 async function borrar(id) {
   if (!confirm("¿Borrar este registro y sus fotos? No se puede deshacer.")) return;
-  await DB.del(id); ENTRADAS = await DB.all(); pintarEstado(); toast("Registro borrado");
+  await Store.del(id); ENTRADAS = await Store.list(); pintarEstado(); pintarAvisos(); toast("Registro borrado");
 }
 
 // =================================================================== ESTADO
@@ -651,7 +711,7 @@ function pintarLista() {
       <div class="acciones"><button class="btn sec" data-ed="${e.id}">✏️ Editar</button><button class="btn peligro" data-del="${e.id}">🗑️ Borrar</button></div></div>`;
   });
   L.innerHTML = h + "</div>";
-  L.querySelectorAll(".mini").forEach(m => { const e = ENTRADAS.find(x => x.id === m.dataset.id); e.fotos.slice(0, 6).forEach(f => { const i = document.createElement("img"); i.src = URL.createObjectURL(f.blob); m.appendChild(i); }); });
+  L.querySelectorAll(".mini").forEach(m => { const e = ENTRADAS.find(x => x.id === m.dataset.id); e.fotos.slice(0, 6).forEach(f => { const i = document.createElement("img"); i.src = f.blob ? URL.createObjectURL(f.blob) : (f.thumb || ""); m.appendChild(i); }); });
   L.querySelectorAll("[data-ed]").forEach(b => b.onclick = () => editar(b.dataset.ed));
   L.querySelectorAll("[data-del]").forEach(b => b.onclick = () => borrar(b.dataset.del));
   const vt = $("ver_todos"); if (vt) vt.onclick = () => { filtro = null; pintarLista(); };
@@ -731,16 +791,16 @@ $("c_add").onclick = () => {
   pintarConfig();
   const i = CFG.comps.findIndex(c => c.competencia === cat.competencia); const d = $("c_comps").querySelector(`details[data-i="${i}"]`); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
 };
-async function guardarCFG(msg) { leerConfigForm(); await DB.set("config", CFG); llenarSelectComp(); pintarSub(); pintarCheck(); toast(msg); }
+async function guardarCFG(msg) { leerConfigForm(); try { await Store.saveConfig(CFG); } catch (er) { return toast("No se pudo guardar: " + er.message, 6000); } pintarAvisos(); llenarSelectComp(); pintarSub(); pintarCheck(); toast(msg); }
 $("c_guardar").onclick = () => guardarCFG("✅ Datos guardados");
 $("p_guardar").onclick = () => guardarCFG("✅ Planeación guardada");
 $("c_reset").onclick = async () => {
   if (!confirm("Esto borra TODAS las evidencias registradas (fotos y textos) para empezar un año nuevo. ¿Ya descargaste la copia de seguridad?")) return;
   const base = confirm("¿Quieres conservar las competencias de este año como base para el nuevo?\n\nAceptar = conservarlas (luego las ajustas)\nCancelar = empezar con las 8 funcionales vacías");
-  await DB.clear(); ENTRADAS = [];
+  await Store.nuevoAnio(); ENTRADAS = [];
   const y = parseInt(CFG.anio) || new Date().getFullYear(); CFG.anio = String(y + 1); CFG.s1 = CFG.s2 = CFG.s3 = "";
   if (!base) CFG.comps = CATALOGO.filter(x => x.tipo === "Funcional").map((x, i) => ({ id: "c" + Date.now() + i, competencia: x.competencia, tipo: x.tipo, area: x.area, pct: "8.75", evidencia: "", contribucion: "", criterio: "", soporte: "Informe escrito con registro fotográfico en cada uno de los seguimientos.", s1: "", s2: "", s3: "", idea: "", carpeta: carpetaDe(x.competencia), archivo: "EVIDENCIA" }));
-  await DB.set("config", CFG); llenarSelectComp(); pintarSub(); pintarConfig();
+  await Store.saveConfig(CFG); llenarSelectComp(); pintarSub(); pintarConfig(); pintarAvisos();
   toast(`Listo: año ${CFG.anio}. Ahora planea tus competencias${base ? "" : " y agrega las 3 comportamentales"}.`, 5000);
 };
 
@@ -884,7 +944,7 @@ const a64Blob = async d => (await fetch(d)).blob();
 function descargar(blob, nombre) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
 $("btn_backup").onclick = async () => {
   toast("Preparando copia…");
-  const es = []; for (const e of ENTRADAS) es.push({ ...e, fotos: await Promise.all(e.fotos.map(async f => ({ ...f, blob: await blobA64(f.blob) }))) });
+  const es = []; for (const e of ENTRADAS) es.push({ ...e, fotos: await Promise.all(e.fotos.map(async f => ({ caption: f.caption, w: f.w, h: f.h, thumb: f.thumb, blob: await blobA64(await Store.fotoBlob(f)) }))) });
   descargar(new Blob([JSON.stringify({ app: "evidencias_docente", version: 1, config: CFG, entradas: es })], { type: "application/json" }), `COPIA_EVIDENCIAS_${CFG.anio}_${hoy()}.json`);
 };
 $("in_backup").onchange = async ev => {
@@ -892,8 +952,9 @@ $("in_backup").onchange = async ev => {
   try {
     const d = JSON.parse(await f.text()); if (d.app !== "evidencias_docente") throw new Error("Archivo no válido");
     if (!confirm(`La copia tiene ${d.entradas.length} registros. Se agregarán a los que ya tienes (los repetidos se reemplazan) y se cargará su configuración. ¿Continuar?`)) return;
-    for (const e of d.entradas) { e.fotos = await Promise.all(e.fotos.map(async x => ({ ...x, blob: await a64Blob(x.blob) }))); await DB.put(e); }
-    CFG = d.config; await DB.set("config", CFG); ENTRADAS = await DB.all(); llenarSelectComp(); pintarSub(); toast("✅ Copia cargada");
+    for (const e of d.entradas) { e.fotos = await Promise.all(e.fotos.map(async x => ({ ...x, blob: await a64Blob(x.blob) }))); await Store.save(e); }
+    const viejo = CFG; CFG = d.config; if (Store.nube) { ["anio", "s1", "s2", "s3", "inst", "dane", "ciudad", "sec", "eva", "evacc", "evacargo"].forEach(k => CFG[k] = viejo[k]); }
+    await Store.saveConfig(CFG); ENTRADAS = await Store.list(); llenarSelectComp(); pintarSub(); toast("✅ Copia cargada");
   } catch (er) { toast("No se pudo cargar la copia: " + er.message, 5000); }
 };
 
@@ -970,7 +1031,7 @@ async function generarZip() {
 
   // ---- foto: ajusta tamaño para que quepa en media página
   const fotoRun = async f => {
-    const buf = new Uint8Array(await f.blob.arrayBuffer());
+    const buf = new Uint8Array(await (await Store.fotoBlob(f)).arrayBuffer());
     const maxW = 290, maxH = 260; let w = f.w || 800, h = f.h || 600; const k = Math.min(maxW / w, maxH / h); w = Math.round(w * k); h = Math.round(h * k);
     return new ImageRun({ type: "jpg", data: buf, transformation: { width: w, height: h } });
   };
@@ -1205,7 +1266,7 @@ $("f_ia").onclick = async () => {
   btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…'; window.__iaEstado = null;
   try {
     const fotos = FOTOS_FORM.slice(0, 8);
-    const imgs = []; for (const f of fotos) imgs.push(await fotoA64(f.blob));
+    const imgs = []; for (const f of fotos) imgs.push(await fotoA64(await Store.fotoBlob(f)));
     const prompt = construirPrompt(c, seg, notas, tit, imgs.length);
     const r = await llamarIA(prompt, imgs);
     aplicarRespuesta(extraerJSON(r.texto), fotos);
@@ -1240,16 +1301,276 @@ function pintarBotonTema() { const d = document.documentElement.dataset.theme ==
 $("tema").onclick = () => { const n = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = n; try { localStorage.setItem("tema", n); } catch (e) {} pintarBotonTema(); };
 pintarBotonTema();
 
+// =================================================================== ALMACENAMIENTO (local o nube)
+const clonar = o => JSON.parse(JSON.stringify(o));
+const CAMPOS_GLOBALES = ["anio", "s1", "s2", "s3", "inst", "dane", "ciudad", "sec", "eva", "evacc", "evacargo"];
+const plantillaVacia = () => CATALOGO.filter(x => x.tipo === "Funcional").map((x, i) => ({ id: "c" + Date.now() + i, competencia: x.competencia, tipo: x.tipo, area: x.area, pct: "8.75", evidencia: "", contribucion: "", criterio: "", soporte: "Informe escrito con registro fotográfico en cada uno de los seguimientos.", s1: "", s2: "", s3: "", idea: "", carpeta: carpetaDe(x.competencia), archivo: "EVIDENCIA" }));
+
+const LocalStore = {
+  nube: false, rectora: false,
+  async init() { await DB.open(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); },
+  async loadConfig() { let c = await DB.get("config"); if (!c) { c = clonar(CONFIG_POR_DEFECTO); await DB.set("config", c); } return c; },
+  async saveConfig(c) { await DB.set("config", c); },
+  async list() { return DB.all(); },
+  async save(e) { await DB.put(e); },
+  async del(id) { await DB.del(id); },
+  async nuevoAnio() { await DB.clear(); },
+  async fotoBlob(f) { return f.blob; },
+};
+
+function cargarScript(src) { return new Promise((ok, err) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => err(new Error("No se pudo cargar " + src)); document.head.appendChild(s); }); }
+const blobDeBase64 = async b64 => (await fetch("data:image/jpeg;base64," + b64)).blob();
+const base64DeBlob = b => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(b); });
+async function reducirBlob(blob, max, q) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
+    let w = img.naturalWidth, h = img.naturalHeight; if (Math.max(w, h) > max) { const k = max / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h; cv.getContext("2d").drawImage(img, 0, 0, w, h);
+    return { blob: await new Promise(ok => cv.toBlob(ok, "image/jpeg", q)), w, h };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+const CloudStore = {
+  nube: true, rectora: false, uid: null, email: "", global: {}, personal: {},
+  async init() {
+    await cargarScript("lib/firebase-app-compat.js"); await cargarScript("lib/firebase-auth-compat.js"); await cargarScript("lib/firebase-firestore-compat.js");
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+    this.auth = firebase.auth(); this.db = firebase.firestore();
+    const user = await new Promise(ok => { const off = this.auth.onAuthStateChanged(u => { if (u) { off(); ok(u); } else mostrarLogin(); }); });
+    $("login").classList.remove("on");
+    this.uid = user.uid; this.email = (user.email || "").toLowerCase(); this.nombre = user.displayName || "";
+    this.rectora = (window.RECTORAS || []).map(x => x.toLowerCase()).includes(this.email);
+    const g = await this.db.doc("config/global").get(); this.global = g.exists ? g.data() : {};
+    const autorizados = (this.global.docentes || []).map(x => x.toLowerCase());
+    if (!this.rectora && !autorizados.includes(this.email)) { mostrarLogin(`Tu correo <b>${esc(this.email)}</b> no está autorizado todavía. Pide a la rectora que lo agregue en la lista de docentes.`, true); throw new Error("no autorizado"); }
+    $("usuario").style.display = "flex"; $("usuario_txt").textContent = (this.rectora ? "Rectoría · " : "") + this.email;
+  },
+  ref(p) { return this.db.doc(`usuarios/${this.uid}/${p}`); },
+  async loadConfig() {
+    const G = this.global, anio = G.anio || String(new Date().getFullYear());
+    const u = await this.db.doc(`usuarios/${this.uid}`).get(); this.personal = u.exists ? u.data() : {};
+    let plan = await this.ref(`planes/${anio}`).get(), comps;
+    if (plan.exists) comps = plan.data().comps;
+    else {
+      const todos = await this.db.collection(`usuarios/${this.uid}/planes`).get();
+      const prev = todos.docs.filter(d => d.id < anio).sort((a, b) => b.id.localeCompare(a.id))[0];
+      comps = prev ? prev.data().comps.map(c => ({ ...c, id: "c" + Math.random().toString(36).slice(2, 9) })) : plantillaVacia();
+    }
+    const c = { ...clonar(CONFIG_POR_DEFECTO), comps };
+    CAMPOS_GLOBALES.forEach(k => c[k] = G[k] || (k === "anio" ? anio : ""));
+    c.doc = this.personal.doc || this.nombre.toUpperCase(); c.cc = this.personal.cc || ""; c.areaens = this.personal.areaens || "";
+    if (!u.exists && !this.rectora) await this.saveConfig(c);
+    return c;
+  },
+  async saveConfig(c) {
+    await this.db.doc(`usuarios/${this.uid}`).set({ email: this.email, doc: c.doc || "", cc: c.cc || "", areaens: c.areaens || "", actualizado: Date.now() }, { merge: true });
+    await this.ref(`planes/${c.anio}`).set({ comps: clonar(c.comps), actualizado: Date.now() });
+  },
+  async list(uid = this.uid, anio = CFG.anio) {
+    const q = await this.db.collection(`usuarios/${uid}/entradas`).where("anio", "==", String(anio)).get();
+    return q.docs.map(d => { const e = d.data(); e.fotos = (e.fotos || []).map(f => ({ ...f, uid })); return e; });
+  },
+  async save(e) {
+    const prev = ENTRADAS.find(x => x.id === e.id), metas = [];
+    for (const f of e.fotos) {
+      if (!f.fid) {
+        let blob = f.blob, w = f.w, h = f.h, b64 = await base64DeBlob(blob);
+        for (const [mx, q] of [[1400, 0.75], [1100, 0.7], [900, 0.65]]) { if (b64.length < 900000) break; const r = await reducirBlob(blob, mx, q); blob = r.blob; w = r.w; h = r.h; b64 = await base64DeBlob(blob); }
+        f.fid = "f" + Date.now() + Math.random().toString(36).slice(2, 8);
+        await this.ref(`fotos/${f.fid}`).set({ data: b64, entrada: e.id, anio: String(CFG.anio) });
+        f.w = w; f.h = h; f.uid = this.uid;
+      }
+      metas.push({ fid: f.fid, caption: f.caption || "", w: f.w || 0, h: f.h || 0, thumb: f.thumb || "" });
+    }
+    if (prev) for (const f of prev.fotos) if (f.fid && !metas.some(m => m.fid === f.fid)) await this.ref(`fotos/${f.fid}`).delete();
+    const { fotos, ...resto } = e;
+    await this.ref(`entradas/${e.id}`).set(clonar({ ...resto, anio: String(CFG.anio), fotos: metas, actualizado: Date.now() }));
+  },
+  async del(id) {
+    const e = ENTRADAS.find(x => x.id === id);
+    if (e) for (const f of e.fotos) if (f.fid) await this.ref(`fotos/${f.fid}`).delete();
+    await this.ref(`entradas/${id}`).delete();
+  },
+  async nuevoAnio() { /* en la nube cada año se guarda por separado; no se borra nada */ },
+  async fotoBlob(f) {
+    if (f.blob) return f.blob;
+    const d = await this.db.doc(`usuarios/${f.uid || this.uid}/fotos/${f.fid}`).get();
+    if (!d.exists) throw new Error("Foto no encontrada");
+    f.blob = await blobDeBase64(d.data().data); return f.blob;
+  },
+};
+let Store = LocalStore;
+
+function mostrarLogin(msg, bloqueado) {
+  $("login").classList.add("on");
+  if (msg) $("login_msg").innerHTML = msg;
+  $("login_btn").style.display = bloqueado ? "none" : "flex";
+  $("login_salir").style.display = bloqueado ? "flex" : "none";
+}
+$("login_btn").onclick = async () => {
+  const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: "select_account" });
+  try { await firebase.auth().signInWithPopup(p); }
+  catch (er) { if (/popup/i.test(er.code || "")) firebase.auth().signInWithRedirect(p); else $("login_msg").textContent = "No se pudo entrar: " + er.message; }
+};
+$("login_salir").onclick = $("salir").onclick = async () => { try { await firebase.auth().signOut(); } catch (e) {} location.reload(); };
+
+// =================================================================== RECTORÍA
+const Rectoria = {
+  docentes: [],
+  async cargar() {
+    if (!Store.rectora) return;
+    const G = Store.global;
+    $("g_anio").value = G.anio || CFG.anio; ["s1", "s2", "s3", "inst", "dane", "ciudad", "sec", "eva", "evacc", "evacargo"].forEach(k => $("g_" + k).value = G[k] || "");
+    $("g_docentes").value = (G.docentes || []).join("\n");
+    $("r_lista").innerHTML = '<p class="hint"><span class="gira">⏳</span> Cargando docentes…</p>';
+    try {
+      const anio = String(G.anio || CFG.anio);
+      const us = await Store.db.collection("usuarios").get();
+      this.docentes = [];
+      for (const d of us.docs) {
+        const u = { uid: d.id, ...d.data() };
+        if ((window.RECTORAS || []).map(x => x.toLowerCase()).includes((u.email || "").toLowerCase())) continue;
+        const plan = await Store.db.doc(`usuarios/${u.uid}/planes/${anio}`).get();
+        u.comps = plan.exists ? plan.data().comps : [];
+        u.entradas = await Store.list(u.uid, anio);
+        const total = u.comps.length * 3, hechos = u.comps.reduce((a, c) => a + [1, 2, 3].filter(s => u.entradas.some(e => e.comp === c.id && e.seg === s)).length, 0);
+        u.total = total; u.hechos = hechos; u.pct = total ? Math.round(hechos / total * 100) : 0;
+        this.docentes.push(u);
+      }
+      this.docentes.sort((a, b) => (a.doc || a.email).localeCompare(b.doc || b.email));
+      this.pintar();
+    } catch (er) { $("r_lista").innerHTML = `<div class="err" style="display:block">No se pudo cargar: ${esc(er.message)}. Revisa que el correo de la rectora esté en firestore.rules.</div>`; }
+  },
+  pintar() {
+    const G = Store.global, prox = proximaEntrega(G);
+    const autorizados = (G.docentes || []), registrados = this.docentes.map(d => (d.email || "").toLowerCase());
+    const sinEntrar = autorizados.filter(e => !registrados.includes(e.toLowerCase()));
+    let al = "";
+    if (prox && prox.dias <= 20) {
+      const atrasados = this.docentes.filter(d => d.comps.some(c => !d.entradas.some(e => e.comp === c.id && e.seg === prox.s)));
+      al = `<div class="aviso-card ${prox.dias <= 7 ? "urg" : ""}"><h4>⏰ Faltan ${prox.dias} días para el S${prox.s} (${fmtFecha(prox.f)})</h4>${atrasados.length ? `Docentes con competencias sin registrar en S${prox.s}: <b>${atrasados.map(d => esc(d.doc || d.email)).join(", ")}</b>` : "Todos los docentes tienen registros para este seguimiento."}</div>`;
+    }
+    $("r_alertas").innerHTML = al;
+    $("r_lista").innerHTML = (this.docentes.length ? this.docentes.map((d, i) => `<div class="docente-row"><div class="info"><b>${esc(d.doc || "(sin nombre)")}</b><span class="hint">${esc(d.email || "")} · ${d.hechos} de ${d.total} seguimientos · ${d.entradas.length} registros</span><div class="mini-barra"><div style="width:${d.pct}%"></div></div></div><span class="pill ${d.pct >= 100 ? "ok" : d.pct ? "ok" : "no"}">${d.pct}%</span><button class="btn sec" data-ver="${i}">Ver</button></div>`).join("") : '<p class="hint">Todavía no ha entrado ningún docente.</p>')
+      + (sinEntrar.length ? `<p class="hint" style="margin-top:10px">Autorizados que aún no han entrado: ${sinEntrar.map(esc).join(", ")}</p>` : "");
+    $("r_lista").querySelectorAll("[data-ver]").forEach(b => b.onclick = () => this.ver(+b.dataset.ver));
+  },
+  cfgDe(d) { const c = { ...clonar(CFG), comps: clonar(d.comps), doc: d.doc || d.email, cc: d.cc || "", areaens: d.areaens || "" }; CAMPOS_GLOBALES.forEach(k => c[k] = Store.global[k] || c[k]); return c; },
+  ver(i) {
+    const d = this.docentes[i], box = $("r_detalle"); box.style.display = "block";
+    let h = `<h3>${esc(d.doc || d.email)}</h3><p class="hint">${esc(d.email || "")} · ${esc(d.areaens || "")} · C.C. ${esc(d.cc || "")}</p>
+      <div class="acciones"><button class="btn" id="r_zip">📦 Descargar su carpeta (.zip)</button><button class="btn sec" id="r_anexos">📄 Sus Anexos 5 y 2</button></div><div class="hint" id="r_estado" style="margin-top:8px"></div>
+      <table class="estado" style="margin-top:12px"><tr><th style="text-align:left">Competencia</th><th>S1</th><th>S2</th><th>S3</th></tr>`;
+    d.comps.forEach(c => { h += `<tr><td class="nom"><b>${esc(c.competencia)}</b><br><span class="hint">${esc(c.evidencia || "")}</span></td>` + [1, 2, 3].map(s => { const n = d.entradas.filter(e => e.comp === c.id && e.seg === s).length; return `<td><span class="pill ${n ? "ok" : "no"}">${n ? "✓ " + n : "0"}</span></td>`; }).join("") + "</tr>"; });
+    h += `</table>`;
+    [...d.entradas].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || "")).forEach(e => { const c = d.comps.find(x => x.id === e.comp);
+      h += `<div class="entrada"><h4>${esc(e.titulo || "(sin título)")}</h4><div class="meta">${esc(c ? c.competencia : "")} · S${e.seg} · ${fmtFecha(e.fecha)} · ${e.fotos.length} foto(s)</div><div>${esc(e.desc || "")}</div><div class="mini">${e.fotos.map(f => `<img src="${f.thumb || ""}">`).join("")}</div></div>`; });
+    box.innerHTML = h; box.scrollIntoView({ behavior: "smooth" });
+    const conDocente = async fn => { const c0 = CFG, e0 = ENTRADAS; CFG = this.cfgDe(d); ENTRADAS = d.entradas; try { await fn(); } finally { CFG = c0; ENTRADAS = e0; } };
+    $("r_zip").onclick = async () => { $("r_estado").textContent = "Generando… puede tardar si hay muchas fotos."; try { await conDocente(() => generarZip()); $("r_estado").textContent = "✅ Listo"; } catch (er) { $("r_estado").textContent = "Error: " + er.message; } };
+    $("r_anexos").onclick = async () => { try { await conDocente(async () => { const z = new JSZip(), n = carpetaDe(CFG.doc); z.file(`ANEXO 5 ${CFG.anio} ${n}.docx`, await anexo5Blob()); z.file(`ANEXO 2 ${CFG.anio} ${n}.docx`, await anexo2Blob(true)); descargar(await z.generateAsync({ type: "blob" }), `ANEXOS ${CFG.anio} ${n}.zip`); }); } catch (er) { toast("Error: " + er.message, 5000); } };
+  },
+  async guardar() {
+    const g = { anio: $("g_anio").value.trim() };
+    ["s1", "s2", "s3", "inst", "dane", "ciudad", "sec", "eva", "evacc", "evacargo"].forEach(k => g[k] = $("g_" + k).value.trim());
+    g.docentes = [...new Set($("g_docentes").value.split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(x => x.includes("@")))];
+    try {
+      await Store.db.doc("config/global").set(g, { merge: true }); Store.global = { ...Store.global, ...g };
+      const anioCambio = g.anio !== CFG.anio;
+      CAMPOS_GLOBALES.forEach(k => CFG[k] = g[k]);
+      if (anioCambio) { CFG = await Store.loadConfig(); ENTRADAS = await Store.list(); llenarSelectComp(); }
+      pintarSub(); pintarAvisos(); toast("✅ Guardado. Los docentes verán estos datos."); this.cargar();
+    } catch (er) { toast("No se pudo guardar: " + er.message, 6000); }
+  },
+};
+$("r_actualizar").onclick = () => Rectoria.cargar();
+$("g_guardar").onclick = () => Rectoria.guardar();
+
+// =================================================================== AVISOS DE ENTREGA
+function proximaEntrega(src = CFG) {
+  const hoyD = new Date(hoy() + "T00:00:00");
+  const l = [1, 2, 3].filter(s => src["s" + s]).map(s => ({ s, f: src["s" + s], dias: Math.round((new Date(src["s" + s] + "T00:00:00") - hoyD) / 864e5) })).filter(x => x.dias >= 0).sort((a, b) => a.dias - b.dias);
+  return l[0] || null;
+}
+function faltantes(s) { return CFG.comps.filter(c => !ENTRADAS.some(e => e.comp === c.id && e.seg === s)); }
+function pintarAvisos() {
+  const A = $("avisos"); if (!CFG) return;
+  const p = proximaEntrega();
+  if (!p) { A.innerHTML = (CFG.s1 || CFG.s2 || CFG.s3) ? "" : `<div class="aviso-card info"><h4>🗓️ Sin fechas de entrega</h4>Define las fechas de S1, S2 y S3 en <b>Planear año</b> para recibir avisos.</div>`; return; }
+  const falta = faltantes(p.s);
+  if (p.dias > 20) { A.innerHTML = `<div class="aviso-card info"><h4>🗓️ Próxima entrega: S${p.s} el ${fmtFecha(p.f)} (en ${p.dias} días)</h4><span class="hint">Te avisaré 20 días antes. ${falta.length ? `Te faltan ${falta.length} competencias por registrar en S${p.s}.` : "Ya tienes registros en todas las competencias."}</span></div>`; return; }
+  A.innerHTML = `<div class="aviso-card ${p.dias <= 7 ? "urg" : ""}"><h4>⏰ ${p.dias === 0 ? "¡Hoy es la entrega" : `Faltan ${p.dias} días para la entrega`} del S${p.s} (${fmtFecha(p.f)})${p.dias === 0 ? "!" : ""}</h4>
+    ${falta.length ? `Te falta registrar en S${p.s}:<ul>${falta.map(c => `<li><b>${esc(c.competencia)}</b>${c["s" + p.s] ? ` — <span class="hint">${esc(c["s" + p.s]).slice(0, 140)}${c["s" + p.s].length > 140 ? "…" : ""}</span>` : ""}</li>`).join("")}</ul>
+    <div class="acciones"><button class="btn ia" id="av_sug">✨ ¿Qué puedo hacer?</button></div><div id="av_res"></div>` : `✅ Ya tienes registros en todas las competencias para el S${p.s}. ¡Revisa que estén completos!`}</div>`;
+  const b = $("av_sug"); if (b) b.onclick = () => sugerirQueHacer(p, falta);
+  notificarSiToca(p, falta);
+}
+async function sugerirQueHacer(p, falta) {
+  const b = $("av_sug"), res = $("av_res"); b.disabled = true; b.innerHTML = '<span class="gira">✨</span> Pensando…';
+  const prompt = `Soy docente de ${CFG.areaens} en ${CFG.inst} (${CFG.ciudad}, Colombia). Faltan ${p.dias} días para entregar el seguimiento S${p.s} de mi Evaluación Anual de Desempeño (Decreto 1278). Me falta evidencia en estas competencias:
+${falta.map(c => `- ${c.competencia}: contribución "${c.contribucion || "sin definir"}". Para el S${p.s} debo entregar: "${c["s" + p.s] || "informe escrito y registro fotográfico"}".`).join("\n")}
+
+Para cada competencia, dame un plan práctico y realista para hacer en ${p.dias} días con mis estudiantes: 3 acciones concretas y cortas (en orden) y 2 fotos que debo tomar como evidencia. Español sencillo.
+Responde SOLO con JSON válido: {"sugerencias":[{"competencia":"...","acciones":["...","...","..."],"fotos":["...","..."]}]}`;
+  try {
+    const j = extraerJSON(await pedirIA(prompt));
+    res.innerHTML = (j.sugerencias || []).map(x => `<div class="sug"><b>${esc(x.competencia)}</b><ol style="margin:6px 0 0 18px;padding:0">${(x.acciones || []).map(a => `<li>${esc(a)}</li>`).join("")}</ol>${(x.fotos || []).length ? `<div class="hint" style="margin-top:6px">📷 Fotos: ${(x.fotos || []).map(esc).join(" · ")}</div>` : ""}</div>`).join("");
+  } catch (er) { if (er.message !== "Cancelado") res.innerHTML = `<div class="err" style="display:block">${esc(er.message)}</div>`; }
+  b.disabled = false; b.textContent = "✨ ¿Qué puedo hacer?";
+}
+async function registrarSW() { if (!("serviceWorker" in navigator)) return null; try { return await navigator.serviceWorker.register("sw.js"); } catch (e) { return null; } }
+async function notificarSiToca(p, falta) {
+  try {
+    if (!("Notification" in window) || Notification.permission !== "granted" || p.dias > 20) return;
+    const clave = "aviso_" + hoy() + "_S" + p.s; if (localStorage.getItem(clave)) return; localStorage.setItem(clave, "1");
+    const reg = await registrarSW(); const titulo = `⏰ Faltan ${p.dias} días para el S${p.s}`, cuerpo = falta.length ? `Te falta registrar: ${falta.map(c => c.competencia).join(", ")}` : "Ya tienes registros en todas las competencias.";
+    if (reg && reg.showNotification) reg.showNotification(titulo, { body: cuerpo, icon: undefined }); else new Notification(titulo, { body: cuerpo });
+  } catch (e) {}
+}
+$("p_notif").onclick = async () => {
+  if (!("Notification" in window)) return toast("Este navegador no permite avisos. Usa el calendario 📅.", 4000);
+  const r = await Notification.requestPermission();
+  if (r === "granted") { await registrarSW(); toast("🔔 Avisos activados. Te avisaré al abrir la página cuando falten 20 días o menos.", 5000); pintarAvisos(); }
+  else toast("No se activaron los avisos. Puedes usar el calendario 📅.", 4000);
+};
+$("p_ics").onclick = () => {
+  leerConfigForm();
+  const fechas = [1, 2, 3].filter(s => CFG["s" + s]); if (!fechas.length) return toast("Primero escribe las fechas de S1, S2 y S3.", 4000);
+  const d8 = iso => iso.replace(/-/g, ""), sig = iso => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10).replace(/-/g, ""); };
+  const st = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Mis Evidencias Docentes//ES", "CALSCALE:GREGORIAN"];
+  fechas.forEach(s => { const desc = `Entrega del seguimiento S${s} de la Evaluación Anual de Desempeño ${CFG.anio}. Abre Mis Evidencias Docentes para revisar qué te falta.`;
+    L.push("BEGIN:VEVENT", `UID:evidencias-${CFG.anio}-s${s}-${carpetaDe(CFG.doc).replace(/ /g, "")}@misevidencias`, "DTSTAMP:" + st, "DTSTART;VALUE=DATE:" + d8(CFG["s" + s]), "DTEND;VALUE=DATE:" + sig(CFG["s" + s]), `SUMMARY:📁 Entrega evidencias S${s} - Evaluación docente ${CFG.anio}`, "DESCRIPTION:" + desc);
+    [["P20D", "Faltan 20 días"], ["P7D", "Falta 1 semana"], ["P1D", "Mañana es la entrega"]].forEach(([t, m]) => L.push("BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:-" + t, `DESCRIPTION:${m} del S${s}`, "END:VALARM"));
+    L.push("END:VEVENT"); });
+  L.push("END:VCALENDAR");
+  descargar(new Blob([L.join("\r\n")], { type: "text/calendar" }), `FECHAS EVIDENCIAS ${CFG.anio}.ics`);
+  toast("📅 Abre el archivo descargado para agregarlo a tu calendario.", 5000);
+};
+
 // =================================================================== INICIO
 (async () => {
-  try { await DB.open(); } catch { alert("Este navegador no permite guardar datos. Prueba con Chrome."); return; }
-  CFG = await DB.get("config");
-  if (!CFG) { CFG = JSON.parse(JSON.stringify(CONFIG_POR_DEFECTO)); await DB.set("config", CFG); }
+  try {
+    if (window.FIREBASE_CONFIG) {
+      Store = CloudStore;
+      $("login_inst").textContent = "";
+      await Store.init();
+    } else await Store.init();
+  } catch (er) { if (er.message !== "no autorizado") alert("No se pudo iniciar: " + er.message); return; }
+  CFG = await Store.loadConfig();
   CFG.comps.forEach(c => { const m = (c.competencia || "").match(/\s*\((\d+(?:[.,]\d+)?)%\)/); if (m) { c.competencia = c.competencia.slice(0, m.index); if (!c.pct) c.pct = m[1]; } if (!c.pct) c.pct = c.tipo === "Comportamental" ? "10" : "8.75"; if (c.soporte === undefined) c.soporte = "Informe escrito con registro fotográfico en cada uno de los seguimientos."; });
-  CFG.comps.forEach(c => { const d = COMPETENCIAS_POR_DEFECTO.find(x => x.id === c.id && x.competencia === c.competencia); if (d) ["s1", "s2", "s3"].forEach(k => { if (!c[k]) c[k] = d[k]; }); });
-  ENTRADAS = await DB.all();
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  llenarSelectComp(); pintarSub(); limpiarForm();
+  if (!Store.nube) CFG.comps.forEach(c => { const d = COMPETENCIAS_POR_DEFECTO.find(x => x.id === c.id && x.competencia === c.competencia); if (d) ["s1", "s2", "s3"].forEach(k => { if (!c[k]) c[k] = d[k]; }); });
+  ENTRADAS = await Store.list();
+  if (Store.nube) {
+    const soloLectura = !Store.rectora;
+    ["c_anio", "c_s1", "c_s2", "c_s3", "c_inst", "c_dane", "c_ciudad", "c_sec", "c_eva", "c_evacc", "c_evacargo"].forEach(id => { $(id).readOnly = soloLectura; });
+    $("p_fechas_nota").style.display = "block"; $("c_reset").closest(".card").style.display = "none";
+    if (Store.rectora) $("tab_rectoria").style.display = "";
+  }
+  llenarSelectComp(); pintarSub(); limpiarForm(); pintarAvisos();
+  if (Store.rectora) irA("rectoria");
+  if ("Notification" in window && Notification.permission === "granted") registrarSW();
   if (!window.docx || !window.JSZip) toast("Falta la carpeta lib: sube también lib/docx.js y lib/jszip.min.js", 6000);
 })();
 </script>

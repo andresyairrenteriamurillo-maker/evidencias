@@ -156,6 +156,14 @@
       <b>✨ Redactar con IA</b>
       <p>Agrega las fotos y escribe en "¿Qué se hizo?" unas notas cortas (por ejemplo: <i>grado 8, armaron la maqueta con cartón, 25 estudiantes</i>). La IA redacta el título, la descripción, las actividades, los resultados y los pies de foto. Revisa siempre el texto antes de guardar.</p>
       <button class="btn ia grande" id="f_ia">✨ Redactar con IA</button>
+      <button class="btn sec grande" id="f_gpt" style="margin-top:10px">💬 Usar mi ChatGPT (copiar y pegar)</button>
+      <div id="gpt_panel" style="display:none; margin-top:12px">
+        <p><b>1.</b> Ya copié las instrucciones. <a href="#" id="gpt_copiar">Copiar de nuevo</a></p>
+        <p><b>2.</b> Abre <a href="https://chatgpt.com/" target="_blank" rel="noopener"><b>ChatGPT</b></a>, pega las instrucciones (mantén presionado → Pegar) y <b>adjunta las mismas fotos en el mismo orden</b>. Envía.</p>
+        <p><b>3.</b> Copia toda la respuesta de ChatGPT y pégala aquí:</p>
+        <textarea id="gpt_resp" rows="4" placeholder='Pega aquí la respuesta (empieza con { "titulo": ...'></textarea>
+        <button class="btn grande" id="gpt_aplicar" style="margin-top:8px">✅ Aplicar respuesta</button>
+      </div>
       <div class="err" id="f_ia_err"></div>
     </div>
     <div style="margin-top:18px; display:flex; gap:10px;">
@@ -239,8 +247,9 @@
   <div class="card">
     <h3>✨ Inteligencia artificial</h3>
     <p>Para redactar los textos con IA necesitas una clave. La de <b>Google Gemini es gratis</b>: entra a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con tu cuenta de Google, toca <b>Create API key</b>, cópiala y pégala aquí. La clave se guarda solo en este dispositivo y no se incluye en la copia de seguridad.</p>
+    <p><b>¿Pagas ChatGPT Plus?</b> Esa suscripción no incluye clave de API. Puedes usar tu ChatGPT sin clave con el botón <b>💬 Usar mi ChatGPT</b> en la pestaña Registrar (copiar y pegar).</p>
     <label>Proveedor</label>
-    <select id="ia_prov"><option value="gemini">Google Gemini (gratis)</option><option value="claude">Claude (Anthropic, de pago)</option></select>
+    <select id="ia_prov"><option value="gemini">Google Gemini (gratis)</option><option value="openai">OpenAI / ChatGPT API (de pago, aparte de ChatGPT Plus)</option><option value="claude">Claude (Anthropic, de pago)</option></select>
     <label>Clave (API key)</label>
     <input type="password" id="ia_key" placeholder="Pega aquí tu clave" autocomplete="off">
     <label>Modelo <span class="hint">(déjalo vacío para usar el más reciente automáticamente)</span></label>
@@ -868,6 +877,16 @@ const espera = ms => new Promise(r => setTimeout(r, ms));
 async function llamarIA(prompt, imagenes) {
   const c = IA.cfg();
   if (!c.key) throw new Error("Falta la clave de IA. Ve a ⚙️ Configuración → Inteligencia artificial.");
+  if (c.prov === "openai") {
+    const modelo = c.model || "gpt-5.6-luna";
+    const content = [{ type: "input_text", text: prompt }, ...imagenes.map(d => ({ type: "input_image", image_url: "data:image/jpeg;base64," + d }))];
+    const r = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { "content-type": "application/json", "authorization": "Bearer " + c.key },
+      body: JSON.stringify({ model: modelo, input: [{ role: "user", content }] }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error("OpenAI respondió con error " + r.status + ": " + ((d.error && d.error.message) || "") + (r.status === 429 ? " (revisa que tu cuenta de API tenga saldo)" : ""));
+    const texto = d.output_text || (d.output || []).flatMap(o => o.content || []).filter(x => x.type === "output_text").map(x => x.text).join("");
+    return { texto, modelo };
+  }
   if (c.prov === "claude") {
     const modelo = c.model || "claude-sonnet-5-5";
     const content = [...imagenes.map(d => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: d } })), { type: "text", text: prompt }];
@@ -899,18 +918,8 @@ async function llamarIA(prompt, imagenes) {
   }
   throw new Error("Todos los modelos de Gemini están ocupados en este momento. Espera unos minutos e intenta de nuevo. (Último " + ultimo + ")");
 }
-function extraerJSON(t) { t = (t || "").replace(/```json|```/g, "").trim(); const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < 0) throw new Error("La IA no devolvió un formato válido. Intenta de nuevo."); return JSON.parse(t.slice(a, b + 1)); }
-
-$("f_ia").onclick = async () => {
-  const btn = $("f_ia"), err = $("f_ia_err"); err.style.display = "none";
-  const c = compById($("f_comp").value), seg = +document.querySelector("input[name=f_seg]:checked").value;
-  const notas = $("f_desc").value.trim(), tit = $("f_titulo").value.trim();
-  if (!notas && !tit && !FOTOS_FORM.length) { err.style.display = "block"; err.textContent = "Agrega al menos fotos o unas notas cortas de lo que se hizo."; return; }
-  btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…'; window.__iaEstado = null;
-  try {
-    const fotos = FOTOS_FORM.slice(0, 8);
-    const imgs = []; for (const f of fotos) imgs.push(await fotoA64(f.blob));
-    const prompt = `Eres un asistente que ayuda a un docente colombiano a redactar evidencias para la Evaluación Anual de Desempeño Laboral (Decreto Ley 1278 de 2002).
+function construirPrompt(c, seg, notas, tit, nFotos) {
+  return `Eres un asistente que ayuda a un docente colombiano a redactar evidencias para la Evaluación Anual de Desempeño Laboral (Decreto Ley 1278 de 2002).
 
 DATOS DE LA EVIDENCIA
 - Institución: ${CFG.inst}. Área que enseña el docente: ${CFG.areaens}.
@@ -922,7 +931,7 @@ DATOS DE LA EVIDENCIA
 - Fecha de la actividad: ${fmtFecha($("f_fecha").value) || "(no indicada)"}
 - Título que escribió el docente: ${tit || "(ninguno)"}
 - Notas del docente sobre lo que se hizo: ${notas || "(ninguna; básate en las fotos)"}
-- Se adjuntan ${imgs.length} foto(s) en orden.
+- Se adjuntan ${nFotos} foto(s) en orden.
 
 INSTRUCCIONES
 1. Redacta en español de Colombia, tono formal e institucional, en tercera persona y en pasado ("los estudiantes elaboraron…", "se realizó…").
@@ -930,13 +939,13 @@ INSTRUCCIONES
 3. "descripcion": 2 párrafos de 60 a 120 palabras cada uno, separados por una línea en blanco.
 4. "actividades": de 4 a 6 frases cortas, sin viñetas.
 5. "resultados": 1 o 2 oraciones.
-6. "pies_de_foto": exactamente ${imgs.length} textos cortos (máximo 12 palabras), uno por foto y en el mismo orden, describiendo lo que se ve.
+6. "pies_de_foto": exactamente ${nFotos} textos cortos (máximo 12 palabras), uno por foto y en el mismo orden, describiendo lo que se ve.
 7. "titulo": máximo 10 palabras.
 
 Responde SOLO con un objeto JSON válido, sin texto adicional, con esta forma:
 {"titulo": "...", "descripcion": "...", "actividades": ["..."], "resultados": "...", "pies_de_foto": ["..."]}`;
-    const r = await llamarIA(prompt, imgs);
-    const j = extraerJSON(r.texto);
+}
+function aplicarRespuesta(j, fotos) {
     if (j.titulo) $("f_titulo").value = j.titulo;
     if (j.descripcion) $("f_desc").value = j.descripcion;
     if (Array.isArray(j.actividades)) $("f_acts").value = j.actividades.join("\n");
@@ -944,8 +953,45 @@ Responde SOLO con un objeto JSON válido, sin texto adicional, con esta forma:
     if (Array.isArray(j.pies_de_foto)) j.pies_de_foto.forEach((p, i) => { if (fotos[i] && !fotos[i].caption) fotos[i].caption = p; });
     pintarFotosForm();
     toast("✨ Texto listo. Revísalo, completa lo que está entre [corchetes] y guarda.", 4500);
+}
+function extraerJSON(t) { t = (t || "").replace(/```json|```/g, "").trim(); const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < 0) throw new Error("La IA no devolvió un formato válido. Intenta de nuevo."); return JSON.parse(t.slice(a, b + 1)); }
+
+$("f_ia").onclick = async () => {
+  const btn = $("f_ia"), err = $("f_ia_err"); err.style.display = "none";
+  const c = compById($("f_comp").value), seg = +document.querySelector("input[name=f_seg]:checked").value;
+  const notas = $("f_desc").value.trim(), tit = $("f_titulo").value.trim();
+  if (!notas && !tit && !FOTOS_FORM.length) { err.style.display = "block"; err.textContent = "Agrega al menos fotos o unas notas cortas de lo que se hizo."; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="gira">✨</span> Redactando…'; window.__iaEstado = null;
+  try {
+    const fotos = FOTOS_FORM.slice(0, 8);
+    const imgs = []; for (const f of fotos) imgs.push(await fotoA64(f.blob));
+    const prompt = construirPrompt(c, seg, notas, tit, imgs.length);
+    const r = await llamarIA(prompt, imgs);
+    aplicarRespuesta(extraerJSON(r.texto), fotos);
   } catch (er) { err.style.display = "block"; err.textContent = er.message; }
   btn.disabled = false; btn.textContent = "✨ Redactar con IA";
+};
+
+let PROMPT_GPT = "";
+async function copiarTexto(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch (e) { const x = document.createElement("textarea"); x.value = t; document.body.appendChild(x); x.select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e2) {} x.remove(); return ok; }
+}
+$("f_gpt").onclick = async () => {
+  const err = $("f_ia_err"); err.style.display = "none";
+  const c = compById($("f_comp").value), seg = +document.querySelector("input[name=f_seg]:checked").value;
+  const notas = $("f_desc").value.trim(), tit = $("f_titulo").value.trim();
+  if (!notas && !tit && !FOTOS_FORM.length) { err.style.display = "block"; err.textContent = "Agrega al menos fotos o unas notas cortas de lo que se hizo."; return; }
+  PROMPT_GPT = construirPrompt(c, seg, notas, tit, FOTOS_FORM.length) + (FOTOS_FORM.length ? `\n\n(Adjunto ${FOTOS_FORM.length} foto(s) en este mensaje.)` : "");
+  const ok = await copiarTexto(PROMPT_GPT);
+  $("gpt_panel").style.display = "block"; $("gpt_resp").value = "";
+  toast(ok ? "📋 Instrucciones copiadas. Ahora pégalas en ChatGPT." : "No se pudo copiar automáticamente; toca 'Copiar de nuevo'.", 4000);
+};
+$("gpt_copiar").onclick = async ev => { ev.preventDefault(); toast((await copiarTexto(PROMPT_GPT)) ? "📋 Copiado" : "No se pudo copiar"); };
+$("gpt_aplicar").onclick = () => {
+  const err = $("f_ia_err"); err.style.display = "none";
+  try { aplicarRespuesta(extraerJSON($("gpt_resp").value), FOTOS_FORM); $("gpt_panel").style.display = "none"; }
+  catch (er) { err.style.display = "block"; err.textContent = "No pude leer la respuesta. Asegúrate de copiar todo lo que respondió ChatGPT (debe empezar con { y terminar con }). " + er.message; }
 };
 
 // =================================================================== MODO NOCHE

@@ -36,6 +36,16 @@ La página puede escribir el texto de cada evidencia a partir de las fotos y de 
 3. Al registrar: agrega las fotos, escribe unas notas cortas en "¿Qué se hizo?" y toca **✨ Redactar con IA**.
 4. Revisa el texto, completa lo que quede entre [corchetes] y guarda.
 
+### Si pagas ChatGPT Plus (sin clave)
+
+La suscripción de ChatGPT Plus no incluye clave de API, pero puedes usarla así:
+
+1. En **Registrar**, agrega las fotos y unas notas cortas y toca **💬 Usar mi ChatGPT (copiar y pegar)**. Las instrucciones se copian solas.
+2. Abre ChatGPT, pega las instrucciones, adjunta las mismas fotos en el mismo orden y envía.
+3. Copia toda la respuesta de ChatGPT, pégala en la casilla de la página y toca **✅ Aplicar respuesta**.
+
+También puedes elegir **OpenAI / ChatGPT API** en Configuración si tienes una clave de API con saldo en platform.openai.com (se paga aparte de ChatGPT Plus).
+
 La clave se guarda solo en tu dispositivo. La IA no inventa cifras: lo que no sepa lo deja entre corchetes para que lo completes.
 
 ## Si no se descarga el Word
